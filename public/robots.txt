@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /office
+Disallow: /dashboard
+Disallow: /login
+Disallow: /admin-login
+Disallow: /register
+
+Sitemap: https://syria14.com/sitemap.xml
