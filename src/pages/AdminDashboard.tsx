@@ -1187,7 +1187,7 @@ const AdminDashboard = () => {
                                   <Button
                                     size="sm"
                                     variant="destructive"
-                                    className="h-8 text-xs"
+                                    className="h-10 text-xs font-semibold"
                                     disabled={actionLoading === profile.id}
                                     onClick={() =>
                                       setDeleteDialog({
@@ -1197,7 +1197,8 @@ const AdminDashboard = () => {
                                       })
                                     }
                                   >
-                                    {lang === 'ar' ? 'حذف' : 'Delete'}
+                                    <Trash2 className="me-2 h-4 w-4" />
+                                    {lang === 'ar' ? 'حذف المستخدم' : 'Delete User'}
                                   </Button>
                                 </div>
                               </td>
