@@ -166,6 +166,33 @@ const OfficeDashboard = () => {
 
   if (!user || user.role !== 'office') return null;
 
+  if (!user.officeStatus) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <div className="max-w-md rounded-xl bg-card p-8 text-center shadow-card">
+          <div className="mb-4 flex justify-center">
+            <div className="rounded-full bg-slate-100 p-3">
+              <span className="text-xl">⏳</span>
+            </div>
+          </div>
+          <h2 className="mb-2 text-xl font-semibold">
+            {lang === 'ar' ? 'جارٍ التحقق' : 'Checking Office Status'}
+          </h2>
+          <p className="mb-6 text-sm text-muted-foreground">
+            {lang === 'ar'
+              ? 'نقوم بتحميل حالة مكتبك. يرجى الانتظار أو إعادة تحميل الصفحة.'
+              : 'We are loading your office status. Please wait or refresh the page.'}
+          </p>
+          <div className="space-y-3">
+            <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+              {lang === 'ar' ? 'إعادة التحميل' : 'Refresh'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Check if office is approved
   if (user.officeStatus === 'pending' || user.officeStatus === 'pending_review') {
     return (

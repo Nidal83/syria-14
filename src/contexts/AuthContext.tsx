@@ -198,6 +198,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, [fetchUserProfile]);
 
+  useEffect(() => {
+    if (!session?.user) return;
+
+    const refreshProfile = async () => {
+      const profile = await fetchUserProfile(session.user);
+      if (profile) setUser(profile);
+    };
+
+    const channel = supabase
+      .channel(`profile-refresh-${session.user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_roles', filter: `user_id=eq.${session.user.id}` },
+        () => {
+          refreshProfile();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'offices', filter: `owner_id=eq.${session.user.id}` },
+        () => {
+          refreshProfile();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [session?.user, fetchUserProfile]);
+
   const login = useCallback(
     async (email: string, password: string): Promise<LoginResult> => {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });

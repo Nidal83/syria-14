@@ -351,6 +351,7 @@ const AdminDashboard = () => {
       active: 'bg-primary/10 text-primary',
       approved: 'bg-primary/10 text-primary',
       pending: 'bg-primary-gold/10 text-primary-gold',
+      pending_review: 'bg-primary-gold/10 text-primary-gold',
       rejected: 'bg-destructive/10 text-destructive',
       inactive: 'bg-muted text-muted-foreground',
     };
@@ -358,6 +359,7 @@ const AdminDashboard = () => {
       active: { ar: 'نشط', en: 'Active' },
       approved: { ar: 'معتمد', en: 'Approved' },
       pending: { ar: 'بانتظار', en: 'Pending' },
+      pending_review: { ar: 'قيد المراجعة', en: 'Pending Review' },
       rejected: { ar: 'مرفوض', en: 'Rejected' },
       inactive: { ar: 'غير نشط', en: 'Inactive' },
     };
