@@ -152,6 +152,50 @@ const AdminDashboard = () => {
   const getUserRole = (userId: string) =>
     userRoles.find((r) => r.user_id === userId)?.role || 'user';
 
+  const updateUserRole = async (userId: string, role: 'user' | 'office' | 'admin') => {
+    setActionLoading(userId);
+
+    try {
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId)
+        .in('role', ['user', 'office', 'admin'].filter((r) => r !== role));
+
+      if (role !== 'user') {
+        const { error: insertError } = await supabase.from('user_roles').upsert(
+          {
+            user_id: userId,
+            role,
+          },
+          { onConflict: ['user_id', 'role'] },
+        );
+        if (insertError) throw insertError;
+      } else {
+        const { error: insertError } = await supabase.from('user_roles').upsert(
+          {
+            user_id: userId,
+            role: 'user',
+          },
+          { onConflict: ['user_id', 'role'] },
+        );
+        if (insertError) throw insertError;
+      }
+
+      await fetchData();
+      toast.success(
+        lang === 'ar'
+          ? 'تم تحديث الدور بنجاح'
+          : 'Role updated successfully',
+      );
+    } catch (err) {
+      console.error('Failed to update role', err);
+      toast.error(lang === 'ar' ? 'فشل تحديث الدور' : 'Failed to update role');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const updateOfficeStatus = async (officeId: string, status: 'approved' | 'rejected') => {
     setActionLoading(officeId);
 
@@ -256,11 +300,12 @@ const AdminDashboard = () => {
         officeFilter === 'all' ||
         (officeFilter === 'pending' && isPending) ||
         o.status === officeFilter;
-      !searchQuery ||
-      o.office_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.owner_name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchFilter && matchSearch;
-  });
+      const matchSearch =
+        !searchQuery ||
+        o.office_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        o.owner_name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchFilter && matchSearch;
+    });
 
   const filteredProperties = properties.filter((p) => {
     const matchFilter = propertyFilter === 'all' || p.status === propertyFilter;
@@ -1089,7 +1134,29 @@ const AdminDashboard = () => {
                               <td className="px-4 py-3 font-mono text-xs">
                                 {profile.phone || '—'}
                               </td>
-                              <td className="px-4 py-3">{roleBadge(getUserRole(profile.id))}</td>
+                              <td className="px-4 py-3">
+                                <select
+                                  className="max-w-[10rem] rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-ring"
+                                  value={getUserRole(profile.id)}
+                                  disabled={actionLoading === profile.id}
+                                  onChange={(e) =>
+                                    updateUserRole(
+                                      profile.id,
+                                      e.target.value as 'user' | 'office' | 'admin',
+                                    )
+                                  }
+                                >
+                                  <option value="user">
+                                    {lang === 'ar' ? 'مستخدم' : 'User'}
+                                  </option>
+                                  <option value="office">
+                                    {lang === 'ar' ? 'مكتب' : 'Office'}
+                                  </option>
+                                  <option value="admin">
+                                    {lang === 'ar' ? 'مسؤول' : 'Admin'}
+                                  </option>
+                                </select>
+                              </td>
                               <td className="px-4 py-3 text-xs text-muted-foreground">
                                 {formatDate(profile.created_at)}
                               </td>
