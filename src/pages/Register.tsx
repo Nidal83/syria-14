@@ -116,7 +116,11 @@ const Register = () => {
       // the office can't do anything until the admin approves anyway.
       // Regular users go to /verify-email so they know to check their inbox.
       if (mode === 'office') {
-        toast.success(t('auth.pending'));
+        toast.success(
+          lang === 'ar'
+            ? 'تم استقبال طلبك. ستتلقى تأكيد بريدي قريباً.'
+            : 'Your application has been received. You will receive an email confirmation soon.',
+        );
         navigate(ROUTES.home);
       } else {
         toast.success(
@@ -127,7 +131,9 @@ const Register = () => {
         navigate(ROUTES.verifyEmail, { state: { email: form.email } });
       }
     } else {
-      toast.error(result.error);
+      const errorMsg = result.error || (mode === 'office' ? 'Failed to register office' : 'Registration failed');
+      console.error('Registration error:', errorMsg);
+      toast.error(errorMsg);
     }
   };
 

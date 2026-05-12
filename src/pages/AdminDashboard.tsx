@@ -134,7 +134,9 @@ const AdminDashboard = () => {
         .select('*, properties(title)')
         .order('created_at', { ascending: false }),
     ]);
-    setOffices((officesRes.data as Office[]) || []);
+    const officesData = (officesRes.data as Office[]) || [];
+    console.log(`[AdminDashboard] Fetched ${officesData.length} offices`, officesData.map(o => ({ id: o.id, status: o.status, owner: o.owner_id })));
+    setOffices(officesData);
     setProperties((propertiesRes.data as Property[]) || []);
     setProfiles((profilesRes.data as Profile[]) || []);
     setUserRoles((rolesRes.data as UserRole[]) || []);

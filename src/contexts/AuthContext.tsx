@@ -303,7 +303,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const officeSlug = data.officeName
         ? `${data.officeName.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${Math.random().toString(36).slice(2, 8)}`
         : null;
-      await supabase.from('offices').insert({
+      const { error: officeError } = await supabase.from('offices').insert({
         owner_id: userId,
         office_name: data.officeName || '',
         owner_name: data.managerName || '',
@@ -311,12 +311,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: data.email,
         governorate_id: data.governorate || null,
         area_id: data.area || null,
+        address: data.address || '',
         description: data.description || '',
         status: 'pending_review',
         verification_document_url: data.verificationDocumentUrl || null,
         id_document_url: data.idDocumentUrl || null,
         office_slug: officeSlug,
       });
+
+      if (officeError) {
+        console.error('Failed to create office record:', officeError);
+        return { success: false, error: `Failed to create office record: ${officeError.message}` };
+      }
     }
 
     return { success: true };

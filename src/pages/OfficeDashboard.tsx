@@ -121,6 +121,7 @@ const OfficeDashboard = () => {
       .single();
 
     if (officeData) {
+      console.log('[OfficeDashboard] Office fetched:', { id: officeData.id, status: officeData.status, owner: officeData.owner_id });
       setOffice(officeData as OfficeData);
       const [propsRes, membersRes, inquiriesRes] = await Promise.all([
         supabase
@@ -167,25 +168,38 @@ const OfficeDashboard = () => {
   if (!user || user.role !== 'office') return null;
 
   if (!user.officeStatus) {
+    // Check if office data exists in the component state
+    // If office exists but user.officeStatus is still null, fetch it
+    const handleRetry = async () => {
+      if (session?.user && !office) {
+        await fetchData();
+      } else {
+        window.location.reload();
+      }
+    };
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="max-w-md rounded-xl bg-card p-8 text-center shadow-card">
           <div className="mb-4 flex justify-center">
             <div className="rounded-full bg-slate-100 p-3">
-              <span className="text-xl">⏳</span>
+              <span className="text-xl">⚠️</span>
             </div>
           </div>
           <h2 className="mb-2 text-xl font-semibold">
-            {lang === 'ar' ? 'جارٍ التحقق' : 'Checking Office Status'}
+            {lang === 'ar' ? 'حالة المكتب غير متاحة' : 'Office Status Unavailable'}
           </h2>
           <p className="mb-6 text-sm text-muted-foreground">
             {lang === 'ar'
-              ? 'نقوم بتحميل حالة مكتبك. يرجى الانتظار أو إعادة تحميل الصفحة.'
-              : 'We are loading your office status. Please wait or refresh the page.'}
+              ? 'لم نتمكن من جلب حالة مكتبك. قد لم تكتمل عملية التسجيل بنجاح.'
+              : 'We could not load your office status. Your registration may not have completed successfully.'}
           </p>
           <div className="space-y-3">
-            <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
-              {lang === 'ar' ? 'إعادة التحميل' : 'Refresh'}
+            <Button onClick={handleRetry} variant="default" className="w-full">
+              {lang === 'ar' ? 'إعادة المحاولة' : 'Retry'}
+            </Button>
+            <Button onClick={() => navigate(ROUTES.contact)} variant="outline" className="w-full">
+              {lang === 'ar' ? 'تواصل معنا' : 'Contact Support'}
             </Button>
           </div>
         </div>
