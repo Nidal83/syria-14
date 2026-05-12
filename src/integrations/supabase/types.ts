@@ -557,7 +557,7 @@ export const Constants = {
   public: {
     Enums: {
       listing_type: ["rent", "sale"],
-      office_status: ["pending", "approved", "rejected"],
+      office_status: ["pending", "pending_review", "approved", "rejected"],
       user_role: ["user", "office", "admin"],
     },
   },
