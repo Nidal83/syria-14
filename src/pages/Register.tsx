@@ -78,20 +78,16 @@ const Register = () => {
     let idDocumentUrl: string | undefined;
 
     if (mode === 'office') {
-      if (!verificationDocument) {
-        toast.error(lang === 'ar' ? 'يرجى تحميل المستند الرسمي' : 'Please upload the verification document');
-        setLoading(false);
-        return;
-      }
-      if (!idDocument) {
-        toast.error(lang === 'ar' ? 'يرجى تحميل صورة الهوية' : 'Please upload your ID image');
-        setLoading(false);
-        return;
-      }
-
       try {
-        verificationDocumentUrl = await uploadOfficeFile(verificationDocument, 'office-documents');
-        idDocumentUrl = await uploadOfficeFile(idDocument, 'office-ids');
+        if (verificationDocument) {
+          verificationDocumentUrl = await uploadOfficeFile(
+            verificationDocument,
+            'office-documents',
+          );
+        }
+        if (idDocument) {
+          idDocumentUrl = await uploadOfficeFile(idDocument, 'office-ids');
+        }
       } catch (error) {
         toast.error(lang === 'ar' ? 'فشل رفع المستندات' : 'Failed to upload documents');
         setLoading(false);
@@ -331,7 +327,6 @@ const Register = () => {
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={(e) => setVerificationDocument(e.target.files?.[0] ?? null)}
                   className={selectClass}
-                  required
                 />
                 {verificationDocument && (
                   <p className="mt-2 text-xs text-muted-foreground">
@@ -349,7 +344,6 @@ const Register = () => {
                   accept=".jpg,.jpeg,.png"
                   onChange={(e) => setIdDocument(e.target.files?.[0] ?? null)}
                   className={selectClass}
-                  required
                 />
                 {idDocument && (
                   <p className="mt-2 text-xs text-muted-foreground">
