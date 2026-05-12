@@ -112,7 +112,7 @@ const AdminDashboard = () => {
   const [officeFilter, setOfficeFilter] = useState<string>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [deleteDialog, setDeleteDialog] = useState<{
-    type: 'property' | 'office';
+    type: 'property' | 'office' | 'user';
     id: string;
     name: string;
   } | null>(null);
@@ -283,6 +283,30 @@ const AdminDashboard = () => {
     }
     setActionLoading(null);
     setDeleteDialog(null);
+  };
+
+  const deleteUser = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await supabase.from('inquiries').delete().eq('user_id', id);
+      await supabase.from('favorites').delete().eq('user_id', id);
+      await supabase.from('offices').delete().eq('owner_id', id);
+      await supabase.from('user_roles').delete().eq('user_id', id);
+      const { error } = await supabase.from('profiles').delete().eq('id', id);
+      if (error) {
+        throw error;
+      }
+      setProfiles((prev) => prev.filter((p) => p.id !== id));
+      setUserRoles((prev) => prev.filter((r) => r.user_id !== id));
+      setOffices((prev) => prev.filter((o) => o.owner_id !== id));
+      toast.success(lang === 'ar' ? 'تم حذف المستخدم' : 'User deleted');
+    } catch (err) {
+      console.error('Failed to delete user', err);
+      toast.error(lang === 'ar' ? 'فشل حذف المستخدم' : 'Failed to delete user');
+    } finally {
+      setActionLoading(null);
+      setDeleteDialog(null);
+    }
   };
 
   // ── Computed ──
@@ -1119,6 +1143,9 @@ const AdminDashboard = () => {
                               {lang === 'ar' ? 'الدور' : 'Role'}
                             </th>
                             <th className="px-4 py-3 text-start font-medium text-muted-foreground">
+                              {lang === 'ar' ? 'إجراءات' : 'Actions'}
+                            </th>
+                            <th className="px-4 py-3 text-start font-medium text-muted-foreground">
                               {lang === 'ar' ? 'تاريخ التسجيل' : 'Joined'}
                             </th>
                           </tr>
@@ -1135,27 +1162,44 @@ const AdminDashboard = () => {
                                 {profile.phone || '—'}
                               </td>
                               <td className="px-4 py-3">
-                                <select
-                                  className="max-w-[10rem] rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-ring"
-                                  value={getUserRole(profile.id)}
-                                  disabled={actionLoading === profile.id}
-                                  onChange={(e) =>
-                                    updateUserRole(
-                                      profile.id,
-                                      e.target.value as 'user' | 'office' | 'admin',
-                                    )
-                                  }
-                                >
-                                  <option value="user">
-                                    {lang === 'ar' ? 'مستخدم' : 'User'}
-                                  </option>
-                                  <option value="office">
-                                    {lang === 'ar' ? 'مكتب' : 'Office'}
-                                  </option>
-                                  <option value="admin">
-                                    {lang === 'ar' ? 'مسؤول' : 'Admin'}
-                                  </option>
-                                </select>
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                  <select
+                                    className="max-w-[10rem] rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:ring-2 focus:ring-ring"
+                                    value={getUserRole(profile.id)}
+                                    disabled={actionLoading === profile.id}
+                                    onChange={(e) =>
+                                      updateUserRole(
+                                        profile.id,
+                                        e.target.value as 'user' | 'office' | 'admin',
+                                      )
+                                    }
+                                  >
+                                    <option value="user">
+                                      {lang === 'ar' ? 'مستخدم' : 'User'}
+                                    </option>
+                                    <option value="office">
+                                      {lang === 'ar' ? 'مكتب' : 'Office'}
+                                    </option>
+                                    <option value="admin">
+                                      {lang === 'ar' ? 'مسؤول' : 'Admin'}
+                                    </option>
+                                  </select>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="h-8 text-xs"
+                                    disabled={actionLoading === profile.id}
+                                    onClick={() =>
+                                      setDeleteDialog({
+                                        type: 'user',
+                                        id: profile.id,
+                                        name: profile.name || profile.email,
+                                      })
+                                    }
+                                  >
+                                    {lang === 'ar' ? 'حذف' : 'Delete'}
+                                  </Button>
+                                </div>
                               </td>
                               <td className="px-4 py-3 text-xs text-muted-foreground">
                                 {formatDate(profile.created_at)}
@@ -1227,6 +1271,7 @@ const AdminDashboard = () => {
                 onClick={() => {
                   if (deleteDialog?.type === 'property') deleteProperty(deleteDialog.id);
                   else if (deleteDialog?.type === 'office') deleteOffice(deleteDialog.id);
+                  else if (deleteDialog?.type === 'user') deleteUser(deleteDialog.id);
                 }}
               >
                 {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dash.delete')}
