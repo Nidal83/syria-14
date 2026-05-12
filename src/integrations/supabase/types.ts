@@ -168,10 +168,13 @@ export type Database = {
           governorate_id: string | null
           id: string
           office_name: string
+          office_slug: string | null
           owner_id: string
           owner_name: string
           phone: string
           status: Database["public"]["Enums"]["office_status"]
+          verification_document_url: string | null
+          id_document_url: string | null
         }
         Insert: {
           area_id?: string | null
@@ -180,10 +183,13 @@ export type Database = {
           governorate_id?: string | null
           id?: string
           office_name: string
+          office_slug?: string | null
           owner_id: string
           owner_name: string
           phone: string
           status?: Database["public"]["Enums"]["office_status"]
+          verification_document_url?: string | null
+          id_document_url?: string | null
         }
         Update: {
           area_id?: string | null
@@ -192,10 +198,13 @@ export type Database = {
           governorate_id?: string | null
           id?: string
           office_name?: string
+          office_slug?: string | null
           owner_id?: string
           owner_name?: string
           phone?: string
           status?: Database["public"]["Enums"]["office_status"]
+          verification_document_url?: string | null
+          id_document_url?: string | null
         }
         Relationships: [
           {
@@ -418,7 +427,7 @@ export type Database = {
     }
     Enums: {
       listing_type: "rent" | "sale"
-      office_status: "pending" | "approved" | "rejected"
+      office_status: "pending" | "pending_review" | "approved" | "rejected"
       user_role: "user" | "office" | "admin"
     }
     CompositeTypes: {

@@ -18,7 +18,7 @@ export interface User {
    */
   emailVerified: boolean;
   officeName?: string;
-  officeStatus?: 'pending' | 'approved' | 'rejected';
+  officeStatus?: 'pending' | 'pending_review' | 'approved' | 'rejected';
 }
 
 type LoginErrorCode = 'invalid_credentials' | 'email_not_confirmed' | 'unknown';
@@ -91,6 +91,8 @@ interface RegisterData {
   area?: string;
   address?: string;
   description?: string;
+  verificationDocumentUrl?: string;
+  idDocumentUrl?: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -126,17 +128,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Fetch office info if role is office
       let officeName: string | undefined;
-      let officeStatus: 'pending' | 'approved' | 'rejected' | undefined;
-      if (role === 'office') {
-        const { data: office } = await supabase
-          .from('offices')
-          .select('office_name, status')
-          .eq('owner_id', supabaseUser.id)
-          .single();
-        if (office) {
-          officeName = office.office_name;
-          officeStatus = office.status as 'pending' | 'approved' | 'rejected';
-        }
+      let officeStatus: 'pending' | 'pending_review' | 'approved' | 'rejected' | undefined;
+      const { data: office } = await supabase
+        .from('offices')
+        .select('office_name, status')
+        .eq('owner_id', supabaseUser.id)
+        .single();
+      if (office) {
+        officeName = office.office_name;
+        officeStatus = office.status as 'pending' | 'pending_review' | 'approved' | 'rejected';
       }
 
       // Fetch favorites
@@ -266,18 +266,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
       .eq('id', userId);
 
-    // If registering as office, add office role and create office record
+    // If registering as an office, create the application record but do not
+    // grant the office role until an admin approves it.
     if (data.role === 'office') {
-      // Add office role
-      await supabase.from('user_roles').insert({ user_id: userId, role: 'office' });
-
-      // Create office
+      const officeSlug = data.officeName
+        ? `${data.officeName.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${Math.random().toString(36).slice(2, 8)}`
+        : null;
       await supabase.from('offices').insert({
         owner_id: userId,
         office_name: data.officeName || '',
         owner_name: data.managerName || '',
         phone: data.phone,
         email: data.email,
+        governorate_id: data.governorate || null,
+        area_id: data.area || null,
+        description: data.description || '',
+        status: 'pending_review',
+        verification_document_url: data.verificationDocumentUrl || null,
+        id_document_url: data.idDocumentUrl || null,
+        office_slug: officeSlug,
       });
     }
 

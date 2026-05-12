@@ -167,7 +167,7 @@ const OfficeDashboard = () => {
   if (!user || user.role !== 'office') return null;
 
   // Check if office is approved
-  if (user.officeStatus === 'pending') {
+  if (user.officeStatus === 'pending' || user.officeStatus === 'pending_review') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="max-w-md rounded-xl bg-card p-8 text-center shadow-card">
@@ -325,7 +325,7 @@ const OfficeDashboard = () => {
 
     const { error } = await supabase
       .from('offices')
-      .update({ status: 'pending' })
+      .update({ status: 'pending_review' })
       .eq('id', office.id);
 
     if (error) {
@@ -427,7 +427,7 @@ const OfficeDashboard = () => {
                   ? lang === 'ar'
                     ? 'معتمد'
                     : 'Approved'
-                  : user.officeStatus === 'pending'
+                  : user.officeStatus === 'pending' || user.officeStatus === 'pending_review'
                     ? lang === 'ar'
                       ? 'قيد المراجعة'
                       : 'Pending'
@@ -541,21 +541,21 @@ const OfficeDashboard = () => {
                 {user.officeStatus !== 'approved' && (
                   <Card
                     className={
-                      user.officeStatus === 'pending'
+                      user.officeStatus === 'pending' || user.officeStatus === 'pending_review'
                         ? 'border-amber-500/50 bg-amber-500/5'
                         : 'border-destructive/50 bg-destructive/5'
                     }
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        {user.officeStatus === 'pending' ? (
+                        {user.officeStatus === 'pending' || user.officeStatus === 'pending_review' ? (
                           <Clock className="mt-0.5 h-5 w-5 text-amber-500" />
                         ) : (
                           <XCircle className="mt-0.5 h-5 w-5 text-destructive" />
                         )}
                         <div className="flex-1">
                           <h3 className="font-semibold">
-                            {user.officeStatus === 'pending'
+                            {user.officeStatus === 'pending' || user.officeStatus === 'pending_review'
                               ? lang === 'ar'
                                 ? 'مكتبك قيد المراجعة'
                                 : 'Your Office is Under Review'
@@ -564,7 +564,7 @@ const OfficeDashboard = () => {
                                 : 'Your Request was Rejected'}
                           </h3>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            {user.officeStatus === 'pending'
+                            {user.officeStatus === 'pending' || user.officeStatus === 'pending_review'
                               ? lang === 'ar'
                                 ? 'ستتمكن من إضافة العقارات فور الموافقة.'
                                 : 'You can add properties once approved.'
@@ -572,7 +572,7 @@ const OfficeDashboard = () => {
                                 ? 'يمكنك إعادة تقديم الطلب.'
                                 : 'You can resubmit the request.'}
                           </p>
-                          {user.officeStatus === 'rejected' && (
+                          {(user.officeStatus === 'rejected') && (
                             <Button
                               size="sm"
                               className="mt-3"

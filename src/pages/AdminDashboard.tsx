@@ -154,21 +154,45 @@ const AdminDashboard = () => {
 
   const updateOfficeStatus = async (officeId: string, status: 'approved' | 'rejected') => {
     setActionLoading(officeId);
+
+    const { data: office, error: officeError } = await supabase
+      .from('offices')
+      .select('owner_id')
+      .eq('id', officeId)
+      .single();
+
+    if (officeError || !office) {
+      toast.error(lang === 'ar' ? 'حدث خطأ' : 'Error occurred');
+      setActionLoading(null);
+      return;
+    }
+
     const { error } = await supabase.from('offices').update({ status }).eq('id', officeId);
     if (error) {
       toast.error(lang === 'ar' ? 'حدث خطأ' : 'Error occurred');
-    } else {
-      toast.success(
-        status === 'approved'
-          ? lang === 'ar'
-            ? 'تمت الموافقة على المكتب'
-            : 'Office approved'
-          : lang === 'ar'
-            ? 'تم رفض المكتب'
-            : 'Office rejected',
-      );
-      setOffices((prev) => prev.map((o) => (o.id === officeId ? { ...o, status } : o)));
+      setActionLoading(null);
+      return;
     }
+
+    if (status === 'approved') {
+      await supabase.from('user_roles').upsert({
+        user_id: office.owner_id,
+        role: 'office',
+      }, { onConflict: ['user_id', 'role'] });
+    } else {
+      await supabase.from('user_roles').delete().eq('user_id', office.owner_id).eq('role', 'office');
+    }
+
+    toast.success(
+      status === 'approved'
+        ? lang === 'ar'
+          ? 'تمت الموافقة على المكتب'
+          : 'Office approved'
+        : lang === 'ar'
+          ? 'تم رفض المكتب'
+          : 'Office rejected',
+    );
+    setOffices((prev) => prev.map((o) => (o.id === officeId ? { ...o, status } : o)));
     setActionLoading(null);
   };
 
@@ -218,7 +242,7 @@ const AdminDashboard = () => {
   };
 
   // ── Computed ──
-  const pendingOffices = offices.filter((o) => o.status === 'pending');
+  const pendingOffices = offices.filter((o) => o.status === 'pending' || o.status === 'pending_review');
   const pendingProperties = properties.filter((p) => p.status === 'pending');
   const activeProperties = properties.filter((p) => p.status === 'active');
   const approvedOffices = offices.filter((o) => o.status === 'approved');
@@ -227,8 +251,11 @@ const AdminDashboard = () => {
   const regularUsers = userRoles.filter((r) => r.role === 'user').length;
 
   const filteredOffices = offices.filter((o) => {
-    const matchFilter = officeFilter === 'all' || o.status === officeFilter;
-    const matchSearch =
+      const isPending = o.status === 'pending' || o.status === 'pending_review';
+      const matchFilter =
+        officeFilter === 'all' ||
+        (officeFilter === 'pending' && isPending) ||
+        o.status === officeFilter;
       !searchQuery ||
       o.office_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       o.owner_name.toLowerCase().includes(searchQuery.toLowerCase());

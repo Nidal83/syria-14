@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -18,6 +18,8 @@ const Register = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'user' | 'office'>('user');
   const [loading, setLoading] = useState(false);
+  const [verificationDocument, setVerificationDocument] = useState<File | null>(null);
+  const [idDocument, setIdDocument] = useState<File | null>(null);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -34,9 +36,68 @@ const Register = () => {
   const update = (key: string, val: string) => setForm((p) => ({ ...p, [key]: val }));
   const currentAreas = form.governorate ? areas[form.governorate] || [] : [];
 
+  const slugify = useCallback((value: string) => {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/--+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }, []);
+
+  const uploadOfficeFile = useCallback(
+    async (file: File, bucket: 'office-documents' | 'office-ids') => {
+      const fileExt = file.name.split('.').pop()?.toLowerCase() ?? '';
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const path = `${form.email.replace(/[^a-zA-Z0-9]/g, '_')}/${filename}`;
+
+      const { error } = await supabase.storage.from(bucket).upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(bucket).getPublicUrl(path);
+      return publicUrl;
+    },
+    [form.email],
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    let verificationDocumentUrl: string | undefined;
+    let idDocumentUrl: string | undefined;
+
+    if (mode === 'office') {
+      if (!verificationDocument) {
+        toast.error(lang === 'ar' ? 'يرجى تحميل المستند الرسمي' : 'Please upload the verification document');
+        setLoading(false);
+        return;
+      }
+      if (!idDocument) {
+        toast.error(lang === 'ar' ? 'يرجى تحميل صورة الهوية' : 'Please upload your ID image');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        verificationDocumentUrl = await uploadOfficeFile(verificationDocument, 'office-documents');
+        idDocumentUrl = await uploadOfficeFile(idDocument, 'office-ids');
+      } catch (error) {
+        toast.error(lang === 'ar' ? 'فشل رفع المستندات' : 'Failed to upload documents');
+        setLoading(false);
+        return;
+      }
+    }
+
     const result = await register({
       name: form.name,
       email: form.email,
@@ -49,6 +110,8 @@ const Register = () => {
       area: mode === 'office' ? form.area : undefined,
       address: mode === 'office' ? form.address : undefined,
       description: mode === 'office' ? form.description : undefined,
+      verificationDocumentUrl,
+      idDocumentUrl,
     });
     setLoading(false);
     if (result.success === true) {
@@ -256,6 +319,42 @@ const Register = () => {
                   onChange={(e) => update('description', e.target.value)}
                   rows={3}
                 />
+              </div>
+              <div>
+                <Label htmlFor="reg-verification-document">
+                  {lang === 'ar' ? 'المستند الرسمي للتحقق' : 'Official Verification Document'}
+                </Label>
+                <input
+                  id="reg-verification-document"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => setVerificationDocument(e.target.files?.[0] ?? null)}
+                  className={selectClass}
+                  required
+                />
+                {verificationDocument && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {lang === 'ar' ? 'ملف محدد:' : 'Selected file:'} {verificationDocument.name}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="reg-id-document">
+                  {lang === 'ar' ? 'صورة الهوية' : 'Personal ID Image'}
+                </Label>
+                <input
+                  id="reg-id-document"
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={(e) => setIdDocument(e.target.files?.[0] ?? null)}
+                  className={selectClass}
+                  required
+                />
+                {idDocument && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {lang === 'ar' ? 'ملف محدد:' : 'Selected file:'} {idDocument.name}
+                  </p>
+                )}
               </div>
             </>
           )}
