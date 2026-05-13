@@ -126,7 +126,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ? 'office'
           : 'user';
 
-      // Fetch office info if role is office
+      // Fetch office info for any user who owns an office/application record.
+      // Pending or rejected applications are stored in the offices table too.
       let officeName: string | undefined;
       let officeStatus: 'pending' | 'pending_review' | 'approved' | 'rejected' | undefined;
       const { data: office } = await supabase

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ROUTES } from '@/app/route-paths';
+import { isApprovedOffice, isPendingOfficeApplicant, isRejectedOfficeApplicant } from '@/lib/role-utils';
 import {
   Plus,
   Building2,
@@ -165,7 +166,11 @@ const OfficeDashboard = () => {
     }
   }, [searchParams, setSearchParams, user]);
 
-  if (!user || user.role !== 'office') return null;
+  if (!user) return null;
+
+  if (!isApprovedOffice(user) && !isPendingOfficeApplicant(user) && !isRejectedOfficeApplicant(user)) {
+    return <Navigate to={ROUTES.dashboard} replace />;
+  }
 
   if (!user.officeStatus) {
     // Check if office data exists in the component state

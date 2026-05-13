@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ROUTES, getDashboardPath } from '@/app/route-paths';
+import { isApprovedOffice } from '@/lib/role-utils';
 
 const Header = () => {
   const { lang, setLang, t } = useLanguage();
@@ -58,7 +59,7 @@ const Header = () => {
               {t('nav.favorites')}
             </Link>
           )}
-          {user?.role === 'office' && (
+          {isApprovedOffice(user) && (
             <Link
               to={ROUTES.officeAddProperty}
               className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -124,7 +125,7 @@ const Header = () => {
                 <DropdownMenuItem onClick={() => navigate(getDashboardPath(user.role))}>
                   {t('nav.dashboard')}
                 </DropdownMenuItem>
-                {user.role === 'office' && (
+                {isApprovedOffice(user) && (
                   <DropdownMenuItem onClick={() => navigate(ROUTES.officeAddProperty)}>
                     <Plus className="me-2 h-4 w-4" /> {t('dash.add_property')}
                   </DropdownMenuItem>
@@ -200,7 +201,7 @@ const Header = () => {
                 >
                   {t('nav.favorites')}
                 </Link>
-                {user.role === 'office' && (
+                {isApprovedOffice(user) && (
                   <Link
                     to={ROUTES.officeAddProperty}
                     onClick={() => setMobileOpen(false)}

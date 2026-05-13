@@ -3,6 +3,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 import { User, Heart, Settings, KeyRound, LogOut, ChevronRight } from 'lucide-react';
+import { isApprovedOffice, isPendingOfficeApplicant, isRejectedOfficeApplicant } from '@/lib/role-utils';
 import { Button } from '@/components/ui/button';
 import { ChangePasswordDialog } from '@/features/auth/components/ChangePasswordDialog';
 import { ROUTES } from '@/app/route-paths';
@@ -16,7 +17,9 @@ const UserDashboard = () => {
   // We still send admin/office users to their own dashboards if they land here.
   if (!user) return null;
   if (user.role === 'admin') return <Navigate to={ROUTES.admin} replace />;
-  if (user.role === 'office') return <Navigate to={ROUTES.office} replace />;
+  if (isApprovedOffice(user) || isPendingOfficeApplicant(user) || isRejectedOfficeApplicant(user)) {
+    return <Navigate to={ROUTES.office} replace />;
+  }
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">

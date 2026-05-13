@@ -84,7 +84,7 @@ export function AppRouter() {
           <Route
             path={ROUTES.office}
             element={
-              <ProtectedRoute roles={['office']}>
+              <ProtectedRoute>
                 <OfficeDashboard />
               </ProtectedRoute>
             }

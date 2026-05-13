@@ -9,6 +9,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { GoogleSignInButton } from '@/features/auth/components/GoogleSignInButton';
 import { toast } from 'sonner';
 import { ROUTES, getDashboardPath } from '@/app/route-paths';
+import { isPendingOfficeApplicant, isRejectedOfficeApplicant, isApprovedOffice } from '@/lib/role-utils';
 
 interface LocationState {
   from?: { pathname?: string };
@@ -46,7 +47,16 @@ const Login = () => {
     const state = location.state as LocationState | null;
     const from = state?.from?.pathname;
     const shouldUseFrom = from && from !== ROUTES.login && from !== ROUTES.register;
-    const target = shouldUseFrom ? from : getDashboardPath(result.user.role);
+    let target = shouldUseFrom ? from : getDashboardPath(result.user.role);
+
+    if (!shouldUseFrom) {
+      if (isPendingOfficeApplicant(result.user) || isRejectedOfficeApplicant(result.user)) {
+        target = ROUTES.office;
+      } else if (isApprovedOffice(result.user)) {
+        target = ROUTES.office;
+      }
+    }
+
     navigate(target, { replace: true });
   };
 

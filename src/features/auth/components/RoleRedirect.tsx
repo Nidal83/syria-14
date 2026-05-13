@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ROUTES } from '@/app/route-paths';
 import { Loader2 } from 'lucide-react';
+import { isApprovedOffice, isPendingOfficeApplicant, isRejectedOfficeApplicant } from '@/lib/role-utils';
 
 /**
  * Route element that sends the user to the dashboard appropriate for their role.
@@ -26,6 +27,8 @@ export function RoleRedirect() {
 
   if (!user) return <Navigate to={ROUTES.login} replace />;
   if (user.role === 'admin') return <Navigate to={ROUTES.admin} replace />;
-  if (user.role === 'office') return <Navigate to={ROUTES.office} replace />;
+  if (isApprovedOffice(user) || isPendingOfficeApplicant(user) || isRejectedOfficeApplicant(user)) {
+    return <Navigate to={ROUTES.office} replace />;
+  }
   return <Navigate to={ROUTES.dashboard} replace />;
 }
