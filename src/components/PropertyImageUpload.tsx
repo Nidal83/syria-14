@@ -1,174 +1,147 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/i18n/LanguageContext';
-import { Button } from '@/components/ui/button';
 import { Upload, X, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/providers/AuthProvider';
+import { useI18n } from '@/lib/i18n/context';
+import { cn } from '@/lib/utils';
 
-interface PropertyImageUploadProps {
-  images: { url: string; isCover: boolean }[];
-  onImagesChange: (images: { url: string; isCover: boolean }[]) => void;
+interface ImageItem {
+  url: string;
+  isCover: boolean;
+}
+
+interface Props {
+  images: ImageItem[];
+  onChange: (images: ImageItem[]) => void;
   maxImages?: number;
 }
 
-const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
+const ACCEPTED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const MAX_SIZE_MB = 5;
 
-const PropertyImageUpload = ({
-  images,
-  onImagesChange,
-  maxImages = 6,
-}: PropertyImageUploadProps) => {
-  const { session } = useAuth();
-  const { lang } = useLanguage();
+// Phase 2: full drag-and-drop with reorder and progress
+export default function PropertyImageUpload({ images, onChange, maxImages = 10 }: Props) {
+  const { t } = useI18n();
+  const { profile } = useAuth();
   const [uploading, setUploading] = useState(false);
 
-  const uploadFile = useCallback(
-    async (file: File): Promise<string | null> => {
-      if (!session?.user) return null;
+  const upload = useCallback(
+    async (file: File) => {
+      if (!ACCEPTED.includes(file.type)) {
+        toast.error('Only JPG, PNG, and WebP images are allowed');
+        return;
+      }
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        toast.error(`Max file size is ${MAX_SIZE_MB}MB`);
+        return;
+      }
+      if (!profile?.id) {
+        toast.error('Not authenticated');
+        return;
+      }
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const ext = file.name.split('.').pop();
+      const path = `${profile.id}/${Date.now()}.${ext}`;
 
-      const { error } = await supabase.storage
+      setUploading(true);
+      const { data, error } = await supabase.storage
         .from('property-images')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+        .upload(path, file, { upsert: false });
 
-      if (error) {
-        console.error('Upload error:', error);
-        return null;
+      setUploading(false);
+
+      if (error || !data) {
+        toast.error(error?.message ?? 'Upload failed');
+        return;
       }
 
       const {
         data: { publicUrl },
-      } = supabase.storage.from('property-images').getPublicUrl(fileName);
-
-      return publicUrl;
+      } = supabase.storage.from('property-images').getPublicUrl(data.path);
+      const isFirst = images.length === 0;
+      onChange([...images, { url: publicUrl, isCover: isFirst }]);
     },
-    [session],
+    [images, onChange, profile?.id],
   );
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  function setCover(url: string) {
+    onChange(images.map((img) => ({ ...img, isCover: img.url === url })));
+  }
 
-    const remaining = maxImages - images.length;
-    if (remaining <= 0) {
-      toast.error(lang === 'ar' ? `الحد الأقصى ${maxImages} صور` : `Maximum ${maxImages} images`);
-      return;
+  function remove(url: string) {
+    const next = images.filter((img) => img.url !== url);
+    if (next.length > 0 && !next.some((img) => img.isCover)) {
+      next[0].isCover = true;
     }
-
-    const toUpload = Array.from(files).slice(0, remaining);
-    setUploading(true);
-
-    const newImages: { url: string; isCover: boolean }[] = [];
-    for (const file of toUpload) {
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        toast.error(
-          lang === 'ar' ? 'يُسمح فقط بصور PNG و JPEG' : 'Only PNG and JPEG images are allowed',
-        );
-        continue;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(
-          lang === 'ar' ? 'حجم الصورة كبير جداً (الحد 5MB)' : 'Image too large (max 5MB)',
-        );
-        continue;
-      }
-      const url = await uploadFile(file);
-      if (url) {
-        newImages.push({ url, isCover: images.length === 0 && newImages.length === 0 });
-      }
-    }
-
-    if (newImages.length > 0) {
-      onImagesChange([...images, ...newImages]);
-      toast.success(
-        lang === 'ar' ? `تم رفع ${newImages.length} صورة` : `${newImages.length} image(s) uploaded`,
-      );
-    }
-
-    setUploading(false);
-    e.target.value = '';
-  };
-
-  const removeImage = (index: number) => {
-    const updated = images.filter((_, i) => i !== index);
-    if (images[index].isCover && updated.length > 0) {
-      updated[0].isCover = true;
-    }
-    onImagesChange(updated);
-  };
-
-  const setCover = (index: number) => {
-    const updated = images.map((img, i) => ({ ...img, isCover: i === index }));
-    onImagesChange(updated);
-  };
+    onChange(next);
+  }
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-        {images.map((img, i) => (
-          <div
-            key={i}
-            className="group relative aspect-square overflow-hidden rounded-lg border border-border"
-          >
-            <img src={img.url} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-              <button
-                type="button"
-                onClick={() => setCover(i)}
-                className={`rounded-full p-1.5 ${img.isCover ? 'bg-primary text-primary-foreground' : 'bg-card/80 text-foreground'}`}
-                title={lang === 'ar' ? 'صورة الغلاف' : 'Set as cover'}
-              >
-                <Star className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => removeImage(i)}
-                className="rounded-full bg-destructive p-1.5 text-destructive-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {img.isCover && (
-              <span className="absolute start-1 top-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
-                {lang === 'ar' ? 'غلاف' : 'Cover'}
-              </span>
-            )}
-          </div>
-        ))}
+      {images.length < maxImages && (
+        <label
+          className={cn(
+            'flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border/60 p-6 text-center transition-colors hover:border-primary/40 hover:bg-muted/30',
+            uploading && 'pointer-events-none opacity-60',
+          )}
+        >
+          <Upload className="h-8 w-8 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
+            {uploading ? t.common.loading : t.property.images}
+          </span>
+          <input
+            type="file"
+            accept={ACCEPTED.join(',')}
+            className="sr-only"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) upload(f);
+              e.target.value = '';
+            }}
+          />
+        </label>
+      )}
 
-        {images.length < maxImages && (
-          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-secondary/50 text-muted-foreground transition-colors hover:border-primary hover:text-primary">
-            <Upload className="h-6 w-6" />
-            <span className="text-xs">
-              {uploading
-                ? lang === 'ar'
-                  ? 'جاري الرفع...'
-                  : 'Uploading...'
-                : lang === 'ar'
-                  ? 'رفع صورة'
-                  : 'Upload'}
-            </span>
-            <input
-              type="file"
-              accept="image/png,image/jpeg"
-              multiple
-              onChange={handleFileSelect}
-              disabled={uploading}
-              className="hidden"
-            />
-          </label>
-        )}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {lang === 'ar'
-          ? `${images.length}/${maxImages} صور • PNG/JPEG فقط • الحد الأقصى 5MB لكل صورة`
-          : `${images.length}/${maxImages} images • PNG/JPEG only • Max 5MB each`}
-      </p>
+      {images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {images.map((img) => (
+            <div
+              key={img.url}
+              className="group relative aspect-square overflow-hidden rounded-lg border border-border/60"
+            >
+              <img src={img.url} alt="" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => setCover(img.url)}
+                  title="Set as cover"
+                  className={cn(
+                    'rounded-full p-1',
+                    img.isCover ? 'text-yellow-400' : 'text-white/70 hover:text-white',
+                  )}
+                >
+                  <Star className="h-4 w-4" fill={img.isCover ? 'currentColor' : 'none'} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(img.url)}
+                  className="rounded-full p-1 text-white/70 hover:text-red-400"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              {img.isCover && (
+                <span className="absolute start-1 top-1 rounded bg-yellow-400/90 px-1 py-0.5 text-[10px] font-bold text-yellow-900">
+                  Cover
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-};
-
-export default PropertyImageUpload;
+}

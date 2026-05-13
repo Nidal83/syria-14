@@ -125,6 +125,63 @@ export type Database = {
           },
         ]
       }
+      office_applications: {
+        Row: {
+          city: string
+          created_at: string
+          description: string
+          document_url: string | null
+          id: string
+          id_document_url: string | null
+          logo_url: string | null
+          office_name: string
+          office_slug: string | null
+          phone: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          description?: string
+          document_url?: string | null
+          id?: string
+          id_document_url?: string | null
+          logo_url?: string | null
+          office_name: string
+          office_slug?: string | null
+          phone: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          description?: string
+          document_url?: string | null
+          id?: string
+          id_document_url?: string | null
+          logo_url?: string | null
+          office_name?: string
+          office_slug?: string | null
+          phone?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       office_members: {
         Row: {
           created_at: string
@@ -162,49 +219,61 @@ export type Database = {
       }
       offices: {
         Row: {
+          address: string
           area_id: string | null
           created_at: string
+          description: string
           email: string
           governorate_id: string | null
           id: string
+          is_active: boolean
+          logo_url: string | null
           office_name: string
-          office_slug: string | null
           owner_id: string
           owner_name: string
           phone: string
+          slug: string | null
           status: Database["public"]["Enums"]["office_status"]
-          verification_document_url: string | null
-          id_document_url: string | null
+          updated_at: string
+          whatsapp: string | null
         }
         Insert: {
+          address?: string
           area_id?: string | null
           created_at?: string
+          description?: string
           email: string
           governorate_id?: string | null
           id?: string
+          is_active?: boolean
+          logo_url?: string | null
           office_name: string
-          office_slug?: string | null
           owner_id: string
           owner_name: string
           phone: string
+          slug?: string | null
           status?: Database["public"]["Enums"]["office_status"]
-          verification_document_url?: string | null
-          id_document_url?: string | null
+          updated_at?: string
+          whatsapp?: string | null
         }
         Update: {
+          address?: string
           area_id?: string | null
           created_at?: string
+          description?: string
           email?: string
           governorate_id?: string | null
           id?: string
+          is_active?: boolean
+          logo_url?: string | null
           office_name?: string
-          office_slug?: string | null
           owner_id?: string
           owner_name?: string
           phone?: string
+          slug?: string | null
           status?: Database["public"]["Enums"]["office_status"]
-          verification_document_url?: string | null
-          id_document_url?: string | null
+          updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: [
           {
@@ -225,118 +294,163 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string
           id: string
           name: string
           phone: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
           id: string
           name?: string
           phone?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
           id?: string
           name?: string
           phone?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
         }
         Relationships: []
       }
       properties: {
         Row: {
           address: string
+          amenities: Json
           area_id: string | null
           area_size: number
           bathrooms: number
           building_age: number
+          category: string
           contact_phone: string
           created_at: string
+          currency: string
           description: string
           direction: string
+          district: string | null
+          featured_image: string | null
           features: string[]
           floor: number
           furnished: boolean
           governorate_id: string | null
           id: string
           kitchens: number
+          latitude: number | null
           listing_type: Database["public"]["Enums"]["listing_type"]
           living_rooms: number
+          longitude: number | null
+          meta_description: string | null
+          meta_title: string | null
           office_id: string
           ownership_type: string
           payment_method: string
           price: number
           property_type: string
+          rejection_reason: string | null
           rooms: number
+          slug: string | null
           status: string
           title: string
           total_floors: number
+          updated_at: string
           video_url: string
           view: string
           whatsapp: string
         }
         Insert: {
           address?: string
+          amenities?: Json
           area_id?: string | null
           area_size?: number
           bathrooms?: number
           building_age?: number
+          category?: string
           contact_phone?: string
           created_at?: string
+          currency?: string
           description?: string
           direction?: string
+          district?: string | null
+          featured_image?: string | null
           features?: string[]
           floor?: number
           furnished?: boolean
           governorate_id?: string | null
           id?: string
           kitchens?: number
+          latitude?: number | null
           listing_type?: Database["public"]["Enums"]["listing_type"]
           living_rooms?: number
+          longitude?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
           office_id: string
           ownership_type?: string
           payment_method?: string
           price?: number
           property_type?: string
+          rejection_reason?: string | null
           rooms?: number
+          slug?: string | null
           status?: string
           title: string
           total_floors?: number
+          updated_at?: string
           video_url?: string
           view?: string
           whatsapp?: string
         }
         Update: {
           address?: string
+          amenities?: Json
           area_id?: string | null
           area_size?: number
           bathrooms?: number
           building_age?: number
+          category?: string
           contact_phone?: string
           created_at?: string
+          currency?: string
           description?: string
           direction?: string
+          district?: string | null
+          featured_image?: string | null
           features?: string[]
           floor?: number
           furnished?: boolean
           governorate_id?: string | null
           id?: string
           kitchens?: number
+          latitude?: number | null
           listing_type?: Database["public"]["Enums"]["listing_type"]
           living_rooms?: number
+          longitude?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
           office_id?: string
           ownership_type?: string
           payment_method?: string
           price?: number
           property_type?: string
+          rejection_reason?: string | null
           rooms?: number
+          slug?: string | null
           status?: string
           title?: string
           total_floors?: number
+          updated_at?: string
           video_url?: string
           view?: string
           whatsapp?: string
@@ -427,8 +541,8 @@ export type Database = {
     }
     Enums: {
       listing_type: "rent" | "sale"
-      office_status: "pending" | "pending_review" | "approved" | "rejected"
-      user_role: "user" | "office" | "admin"
+      office_status: "pending" | "approved" | "rejected"
+      user_role: "user" | "pending_office" | "office" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -557,8 +671,8 @@ export const Constants = {
   public: {
     Enums: {
       listing_type: ["rent", "sale"],
-      office_status: ["pending", "pending_review", "approved", "rejected"],
-      user_role: ["user", "office", "admin"],
+      office_status: ["pending", "approved", "rejected"],
+      user_role: ["user", "pending_office", "office", "admin"],
     },
   },
 } as const

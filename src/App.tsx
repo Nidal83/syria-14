@@ -1,13 +1,10 @@
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { AppProviders } from '@/app/AppProviders';
-import { AppRouter } from '@/app/AppRouter';
+import { AppProviders } from './providers';
+import { AppRouter } from './routes';
 
-const App = () => (
-  <ErrorBoundary>
+export default function App() {
+  return (
     <AppProviders>
       <AppRouter />
     </AppProviders>
-  </ErrorBoundary>
-);
-
-export default App;
+  );
+}

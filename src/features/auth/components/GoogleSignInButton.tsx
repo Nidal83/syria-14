@@ -1,49 +1,31 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/i18n/LanguageContext';
-import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/providers/AuthProvider';
+import { useI18n } from '@/lib/i18n/context';
 
-interface GoogleSignInButtonProps {
-  /**
-   * Where to send the user after OAuth completes. Must be in Supabase's
-   * Redirect URL allow-list. Typically `${window.location.origin}/`.
-   */
-  redirectTo?: string;
-  /** Optional label override. Defaults to "Sign in with Google" / "تسجيل الدخول بجوجل". */
-  label?: string;
-  /** className passed through to the Button. */
+interface Props {
   className?: string;
+  label?: string;
 }
 
-/**
- * Google OAuth sign-in button.
- *
- * Requires that Google is enabled in Supabase Dashboard → Auth → Providers,
- * AND that the redirect URL is on the allow-list.
- *
- * Uses the official Google G logo (rendered inline as SVG so we never break
- * Google's brand guidelines or load external assets).
- */
-export function GoogleSignInButton({ redirectTo, label, className }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({ className, label }: Props) {
   const { signInWithGoogle } = useAuth();
-  const { lang } = useLanguage();
+  const { t, locale } = useI18n();
   const [loading, setLoading] = useState(false);
 
-  const handleClick = async () => {
+  async function handleClick() {
     setLoading(true);
-    const finalRedirect = redirectTo ?? `${window.location.origin}/`;
-    const result = await signInWithGoogle(finalRedirect);
-    // On success, the browser navigates away to Google and the page unmounts.
-    // We only hit this branch if Supabase returned an error before redirecting.
-    if (!result.success) {
+    const result = await signInWithGoogle();
+    if (result.success === false) {
       setLoading(false);
       toast.error(
-        result.error ?? (lang === 'ar' ? 'فشل تسجيل الدخول بجوجل' : 'Google sign-in failed'),
+        result.error ?? (locale === 'ar' ? 'فشل تسجيل الدخول بجوجل' : 'Google sign-in failed'),
       );
     }
-  };
+    // On success the browser navigates away — component unmounts.
+  }
 
   return (
     <Button
@@ -52,31 +34,31 @@ export function GoogleSignInButton({ redirectTo, label, className }: GoogleSignI
       onClick={handleClick}
       disabled={loading}
       className={className}
-      aria-label={lang === 'ar' ? 'تسجيل الدخول باستخدام جوجل' : 'Sign in with Google'}
+      aria-label={t.auth.loginWithGoogle}
     >
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <svg className="me-2 h-4 w-4" viewBox="0 0 48 48" aria-hidden="true">
+        <svg className="me-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
           <path
-            fill="#FFC107"
-            d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4"
           />
           <path
-            fill="#FF3D00"
-            d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853"
           />
           <path
-            fill="#4CAF50"
-            d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            fill="#FBBC05"
           />
           <path
-            fill="#1976D2"
-            d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335"
           />
         </svg>
       )}
-      <span>{label ?? (lang === 'ar' ? 'المتابعة باستخدام جوجل' : 'Continue with Google')}</span>
+      <span>{label ?? t.auth.loginWithGoogle}</span>
     </Button>
   );
 }
