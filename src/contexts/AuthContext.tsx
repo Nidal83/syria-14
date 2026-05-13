@@ -301,6 +301,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // If registering as an office, create the application record but do not
     // grant the office role until an admin approves it.
     if (data.role === 'office') {
+      // Look up governorate and area UUIDs from their keys
+      let governorateId = null;
+      let areaId = null;
+      
+      if (data.governorate) {
+        const { data: govData } = await supabase
+          .from('governorates')
+          .select('id')
+          .eq('key', data.governorate)
+          .single();
+        governorateId = govData?.id || null;
+      }
+      
+      if (data.area) {
+        const { data: areaData } = await supabase
+          .from('areas')
+          .select('id')
+          .eq('key', data.area)
+          .single();
+        areaId = areaData?.id || null;
+      }
+
       const officeSlug = data.officeName
         ? `${data.officeName.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${Math.random().toString(36).slice(2, 8)}`
         : null;
@@ -310,8 +332,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         owner_name: data.managerName || '',
         phone: data.phone,
         email: data.email,
-        governorate_id: data.governorate || null,
-        area_id: data.area || null,
+        governorate_id: governorateId,
+        area_id: areaId,
         address: data.address || '',
         description: data.description || '',
         status: 'pending_review',
