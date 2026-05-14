@@ -46,26 +46,32 @@ const MAX_MB = 5;
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
-const baseSchema = z
-  .object({
-    name: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().min(7),
-    password: z.string().min(8),
-    confirmPassword: z.string(),
-  })
-  .refine((d) => d.password === d.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
+const baseFields = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().min(7),
+  password: z.string().min(8),
+  confirmPassword: z.string(),
+});
+
+const baseSchema = baseFields.refine((d) => d.password === d.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
 
 type UserFormData = z.infer<typeof baseSchema>;
 
-const officeSchema = baseSchema.extend({
+const officeFields = baseFields.extend({
   officeName: z.string().min(2),
-  city: z.string().min(1),
+  city: z.string().optional(),
   officeDescription: z.string().optional(),
 });
+
+const officeSchema = officeFields.refine((d) => d.password === d.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
 type OfficeFormData = z.infer<typeof officeSchema>;
 
 // ─── Slug helper ──────────────────────────────────────────────────────────────
@@ -358,7 +364,7 @@ function OfficeRegisterForm() {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<OfficeFormData>({
-    resolver: zodResolver(officeSchema.extend({ city: z.string().optional() })),
+    resolver: zodResolver(officeSchema),
   });
 
   const officeName = watch('officeName') ?? '';
