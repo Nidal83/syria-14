@@ -3,7 +3,7 @@ export const ar = {
   lang: 'ar',
 
   common: {
-    appName: 'سوريا هومز',
+    appName: 'سيريا 14',
     loading: 'جاري التحميل...',
     error: 'حدث خطأ',
     retry: 'إعادة المحاولة',

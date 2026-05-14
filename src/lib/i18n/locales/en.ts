@@ -5,7 +5,7 @@ export const en: Translations = {
   lang: 'en',
 
   common: {
-    appName: 'Syria Homes',
+    appName: 'Syria 14',
     loading: 'Loading...',
     error: 'An error occurred',
     retry: 'Retry',
