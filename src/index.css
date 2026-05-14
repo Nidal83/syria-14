@@ -9,99 +9,101 @@
     --font-arabic: 'Cairo', sans-serif;
     --font-english: 'Inter', sans-serif;
 
-    --background: 45 20% 97%;
-    --foreground: 150 20% 10%;
+    /* Syria 14 brand: warm cream background, dark charcoal text */
+    --background: 40 18% 97%;
+    --foreground: 215 28% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 150 20% 10%;
+    --card-foreground: 215 28% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 20% 10%;
+    --popover-foreground: 215 28% 18%;
 
-    --primary: 145 45% 28%;
-    --primary-foreground: 45 30% 95%;
+    /* Brand gold #C4922A ≈ hsl(38 70% 46%) */
+    --primary: 38 70% 46%;
+    --primary-foreground: 0 0% 98%;
 
-    --primary-gold: 42 65% 52%;
-    --primary-gold-foreground: 42 10% 10%;
+    --primary-gold: 38 70% 46%;
+    --primary-gold-foreground: 0 0% 98%;
 
-    --secondary: 80 20% 90%;
-    --secondary-foreground: 150 20% 15%;
+    --secondary: 38 15% 92%;
+    --secondary-foreground: 215 28% 18%;
 
-    --muted: 80 10% 93%;
-    --muted-foreground: 150 8% 46%;
+    --muted: 38 10% 93%;
+    --muted-foreground: 215 15% 48%;
 
-    --accent: 42 55% 55%;
-    --accent-foreground: 42 10% 10%;
+    --accent: 38 55% 52%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 80 15% 88%;
-    --input: 80 15% 88%;
-    --ring: 145 45% 28%;
+    --border: 38 15% 87%;
+    --input: 38 15% 87%;
+    --ring: 38 70% 46%;
 
     --radius: 0.75rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(145 45% 28%), hsl(80 30% 40%), hsl(42 65% 52%));
-    --gradient-hero: linear-gradient(180deg, hsl(145 45% 28% / 0.9), hsl(80 30% 35% / 0.85));
-    --shadow-card: 0 2px 16px -4px hsl(150 20% 10% / 0.08);
-    --shadow-card-hover: 0 8px 30px -8px hsl(150 20% 10% / 0.15);
+    --gradient-primary: linear-gradient(135deg, hsl(38 70% 46%), hsl(38 65% 35%), hsl(215 28% 22%));
+    --gradient-hero: linear-gradient(180deg, hsl(215 30% 10% / 0.92), hsl(38 70% 30% / 0.25));
+    --shadow-card: 0 2px 16px -4px hsl(215 28% 18% / 0.08);
+    --shadow-card-hover: 0 8px 30px -8px hsl(215 28% 18% / 0.16);
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 145 45% 28%;
+    --sidebar-foreground: 215 28% 22%;
+    --sidebar-primary: 38 70% 46%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 80 20% 95%;
-    --sidebar-accent-foreground: 150 20% 15%;
-    --sidebar-border: 80 15% 88%;
-    --sidebar-ring: 145 45% 28%;
+    --sidebar-accent: 38 15% 94%;
+    --sidebar-accent-foreground: 215 28% 18%;
+    --sidebar-border: 38 15% 87%;
+    --sidebar-ring: 38 70% 46%;
   }
 
   .dark {
-    --background: 150 15% 8%;
-    --foreground: 45 20% 92%;
+    --background: 215 28% 8%;
+    --foreground: 40 18% 92%;
 
-    --card: 150 12% 12%;
-    --card-foreground: 45 20% 92%;
+    --card: 215 25% 12%;
+    --card-foreground: 40 18% 92%;
 
-    --popover: 150 12% 12%;
-    --popover-foreground: 45 20% 92%;
+    --popover: 215 25% 12%;
+    --popover-foreground: 40 18% 92%;
 
-    --primary: 42 65% 52%;
-    --primary-foreground: 150 20% 8%;
+    --primary: 38 70% 52%;
+    --primary-foreground: 215 28% 8%;
 
-    --primary-gold: 42 65% 52%;
-    --primary-gold-foreground: 42 10% 10%;
+    --primary-gold: 38 70% 52%;
+    --primary-gold-foreground: 215 28% 8%;
 
-    --secondary: 150 10% 18%;
-    --secondary-foreground: 45 20% 88%;
+    --secondary: 215 18% 18%;
+    --secondary-foreground: 40 18% 88%;
 
-    --muted: 150 10% 16%;
-    --muted-foreground: 45 10% 55%;
+    --muted: 215 18% 16%;
+    --muted-foreground: 40 10% 55%;
 
-    --accent: 145 40% 35%;
-    --accent-foreground: 45 20% 92%;
+    --accent: 38 60% 42%;
+    --accent-foreground: 40 18% 92%;
 
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 10% 20%;
-    --input: 150 10% 20%;
-    --ring: 42 65% 52%;
+    --border: 215 18% 20%;
+    --input: 215 18% 20%;
+    --ring: 38 70% 52%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(42 65% 52%), hsl(80 30% 40%), hsl(145 40% 35%));
-    --gradient-hero: linear-gradient(180deg, hsl(150 15% 6% / 0.95), hsl(150 12% 10% / 0.9));
+    --gradient-primary: linear-gradient(135deg, hsl(38 70% 52%), hsl(38 60% 38%), hsl(215 28% 22%));
+    --gradient-hero: linear-gradient(180deg, hsl(215 28% 6% / 0.95), hsl(38 60% 20% / 0.4));
     --shadow-card: 0 2px 16px -4px hsl(0 0% 0% / 0.3);
     --shadow-card-hover: 0 8px 30px -8px hsl(0 0% 0% / 0.5);
 
-    --sidebar-background: 150 12% 10%;
-    --sidebar-foreground: 45 20% 88%;
-    --sidebar-primary: 42 65% 52%;
-    --sidebar-primary-foreground: 150 20% 8%;
-    --sidebar-accent: 150 10% 16%;
-    --sidebar-accent-foreground: 45 20% 88%;
-    --sidebar-border: 150 10% 20%;
-    --sidebar-ring: 42 65% 52%;
+    --sidebar-background: 215 25% 10%;
+    --sidebar-foreground: 40 18% 88%;
+    --sidebar-primary: 38 70% 52%;
+    --sidebar-primary-foreground: 215 28% 8%;
+    --sidebar-accent: 215 18% 16%;
+    --sidebar-accent-foreground: 40 18% 88%;
+    --sidebar-border: 215 18% 20%;
+    --sidebar-ring: 38 70% 52%;
   }
 
   .syria-theme {

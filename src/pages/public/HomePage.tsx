@@ -8,12 +8,10 @@ export default function HomePage() {
     <div className="flex flex-col">
       {/* ── Hero ── */}
       <section className="relative flex min-h-[75vh] flex-col items-center justify-center overflow-hidden">
-        {/* Background: photo with dark-green overlay */}
+        {/* Background: Damascus skyline SVG */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url('/hero-bg.jpg'), linear-gradient(135deg, #14532d 0%, #1a3a1a 50%, #3d2e00 100%)`,
-          }}
+          style={{ backgroundImage: `url('/hero-syria.svg')` }}
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
