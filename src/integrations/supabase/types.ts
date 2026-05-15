@@ -46,6 +46,42 @@ export type Database = {
           },
         ]
       }
+      favorite_offices: {
+        Row: {
+          id: string
+          user_id: string
+          office_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          office_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          office_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_offices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorite_offices_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           id: string

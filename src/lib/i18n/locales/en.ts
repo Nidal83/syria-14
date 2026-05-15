@@ -31,6 +31,9 @@ export const en: Translations = {
     noResults: 'No results found',
     required: 'Required',
     optional: 'Optional',
+    viewAll: 'View All',
+    savedToFavorites: 'Saved to favorites',
+    removedFromFavorites: 'Removed from favorites',
   },
 
   nav: {
@@ -206,6 +209,11 @@ export const en: Translations = {
     officeDetail: 'Office Details',
     contact: 'Contact Us',
     favorites: 'Favorites',
+    savedProperties: 'Saved Properties',
+    savedOffices: 'Saved Offices',
+    noSavedProperties: 'No saved properties yet',
+    noSavedOffices: 'No saved offices yet',
+    latestProperties: 'Latest Properties',
     account: 'My Account',
     notFound: 'Page Not Found',
     notFoundDesc: 'Sorry, the page you are looking for does not exist.',

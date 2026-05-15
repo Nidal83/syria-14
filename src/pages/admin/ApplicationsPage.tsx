@@ -269,10 +269,20 @@ function ApproveDialog({
       });
 
       if (officeErr) throw officeErr;
+
+      // 3. Promote user role to 'office' so they can access the office dashboard
+      const { error: roleErr } = await supabase
+        .from('profiles')
+        .update({ role: 'office' })
+        .eq('id', app.user_id);
+
+      if (roleErr) throw roleErr;
     },
     onSuccess: () => {
       toast.success(t.admin.approveSuccess);
       qc.invalidateQueries({ queryKey: ['admin-applications'] });
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
       onClose();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -333,10 +343,15 @@ function RejectDialog({
         })
         .eq('id', app.id);
       if (error) throw error;
+
+      // Revert role back to 'user' so they lose pending_office access
+      await supabase.from('profiles').update({ role: 'user' }).eq('id', app.user_id);
     },
     onSuccess: () => {
       toast.success(t.admin.rejectSuccess);
       qc.invalidateQueries({ queryKey: ['admin-applications'] });
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
       setReason('');
       onClose();
     },

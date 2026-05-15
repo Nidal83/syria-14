@@ -1,5 +1,20 @@
 import SearchBox from '@/components/SearchBox';
+import PropertySection from '@/components/PropertySection';
 import { useI18n } from '@/lib/i18n/context';
+import { supabase } from '@/integrations/supabase/client';
+import { PATHS } from '@/routes/paths';
+import type { Property } from '@/types/property.types';
+
+async function fetchLatestProperties(): Promise<Property[]> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(8);
+  if (error) throw error;
+  return (data ?? []) as Property[];
+}
 
 export default function HomePage() {
   const { t } = useI18n();
@@ -37,6 +52,14 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Latest Properties ── */}
+      <PropertySection
+        title={t.pages.latestProperties}
+        queryKey="latest-properties"
+        queryFn={fetchLatestProperties}
+        viewAllHref={PATHS.properties}
+      />
     </div>
   );
 }

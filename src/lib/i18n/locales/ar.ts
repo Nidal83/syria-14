@@ -29,6 +29,9 @@ export const ar = {
     noResults: 'لا توجد نتائج',
     required: 'مطلوب',
     optional: 'اختياري',
+    viewAll: 'عرض الكل',
+    savedToFavorites: 'أضيف إلى المفضلة',
+    removedFromFavorites: 'حذف من المفضلة',
   },
 
   nav: {
@@ -204,6 +207,11 @@ export const ar = {
     officeDetail: 'تفاصيل المكتب',
     contact: 'اتصل بنا',
     favorites: 'المفضلة',
+    savedProperties: 'العقارات المحفوظة',
+    savedOffices: 'المكاتب المحفوظة',
+    noSavedProperties: 'لا توجد عقارات محفوظة بعد',
+    noSavedOffices: 'لا توجد مكاتب محفوظة بعد',
+    latestProperties: 'أحدث العقارات',
     account: 'حسابي',
     notFound: 'الصفحة غير موجودة',
     notFoundDesc: 'عذراً، الصفحة التي تبحث عنها غير موجودة.',
