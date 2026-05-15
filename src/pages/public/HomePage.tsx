@@ -8,12 +8,27 @@ import type { Property } from '@/types/property.types';
 async function fetchLatestProperties(): Promise<Property[]> {
   const { data, error } = await supabase
     .from('properties')
-    .select('*')
+    .select(
+      'id, title, slug, category, listing_type, price, currency, city, district, area_size, rooms, bathrooms, featured_image, status, created_at',
+    )
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(8);
   if (error) throw error;
-  return (data ?? []) as Property[];
+  return (data ?? []).map((p) => ({
+    ...p,
+    bedrooms: p.rooms,
+    amenities: [],
+    address: null,
+    latitude: null,
+    longitude: null,
+    rejection_reason: null,
+    whatsapp: null,
+    meta_title: null,
+    meta_description: null,
+    updated_at: p.created_at,
+    office_id: '',
+  })) as Property[];
 }
 
 export default function HomePage() {

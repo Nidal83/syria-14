@@ -9,13 +9,18 @@ import {
   ExternalLink,
   Trash2,
   UserX,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/providers/AuthProvider';
 import { useI18n } from '@/lib/i18n/context';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -28,11 +33,16 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface UserApplication {
+  id: string;
   document_url: string | null;
   id_document_url: string | null;
   logo_url: string | null;
   office_name: string;
   status: string;
+  phone: string;
+  city: string;
+  office_slug: string | null;
+  description: string;
 }
 
 interface UserRow {
@@ -54,7 +64,7 @@ function useUsers() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'id, name, email, phone, role, created_at, office_applications(document_url, id_document_url, logo_url, office_name, status)',
+          'id, name, email, phone, role, created_at, office_applications(id, document_url, id_document_url, logo_url, office_name, status, phone, city, office_slug, description)',
         )
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -98,15 +108,20 @@ function UserCard({
   user,
   onDelete,
   onDemote,
+  onApprove,
+  onReject,
 }: {
   user: UserRow;
   onDelete: (u: UserRow) => void;
   onDemote: (u: UserRow) => void;
+  onApprove: (u: UserRow) => void;
+  onReject: (u: UserRow) => void;
 }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const app = user.office_applications?.[0] ?? null;
   const canDemote = user.role === 'office' || user.role === 'pending_office';
+  const isPendingOffice = user.role === 'pending_office' && app?.status === 'pending_review';
 
   return (
     <Card className="overflow-hidden shadow-card">
@@ -126,7 +141,35 @@ function UserCard({
             {user.phone ? ` · ${user.phone}` : ''}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {/* Always-visible approve/reject for pending_office */}
+          {isPendingOffice && (
+            <>
+              <Button
+                size="sm"
+                className="gap-1.5"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onApprove(user);
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.admin.approve}</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="gap-1.5"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReject(user);
+                }}
+              >
+                <XCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.admin.reject}</span>
+              </Button>
+            </>
+          )}
           <span className="hidden text-xs text-muted-foreground sm:block">
             {format(new Date(user.created_at), 'dd/MM/yyyy')}
           </span>
@@ -173,9 +216,60 @@ function UserCard({
             )}
           </div>
 
+          {/* Application info if pending */}
+          {app && (
+            <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+              <div>
+                <p className="text-xs text-muted-foreground">{t.office.officeName}</p>
+                <p className="font-medium">{app.office_name}</p>
+              </div>
+              {app.city && (
+                <div>
+                  <p className="text-xs text-muted-foreground">{t.office.city}</p>
+                  <p className="font-medium">{app.city}</p>
+                </div>
+              )}
+              {app.phone && (
+                <div>
+                  <p className="text-xs text-muted-foreground">{t.office.phone}</p>
+                  <p className="font-medium" dir="ltr">
+                    {app.phone}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex flex-wrap gap-2 pt-1">
-            {canDemote && (
+            {isPendingOffice && (
+              <>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApprove(user);
+                  }}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t.admin.approve}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="gap-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReject(user);
+                  }}
+                >
+                  <XCircle className="h-4 w-4" />
+                  {t.admin.reject}
+                </Button>
+              </>
+            )}
+            {canDemote && !isPendingOffice && (
               <Button
                 size="sm"
                 variant="outline"
@@ -308,6 +402,181 @@ function DemoteDialog({ user, onClose }: { user: UserRow | null; onClose: () => 
   );
 }
 
+// ─── Approve dialog ───────────────────────────────────────────────────────────
+
+function ApproveDialog({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
+  const { t } = useI18n();
+  const { profile: adminProfile } = useAuth();
+  const qc = useQueryClient();
+  const app = user?.office_applications?.[0] ?? null;
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!user || !app || !adminProfile) return;
+
+      // 1. Update application status
+      const { error: appErr } = await supabase
+        .from('office_applications')
+        .update({
+          status: 'approved',
+          reviewed_by: adminProfile.id,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', app.id);
+      if (appErr) throw appErr;
+
+      // 2. Create office record
+      const { error: officeErr } = await supabase.from('offices').insert({
+        owner_id: user.id,
+        owner_name: user.name,
+        email: user.email,
+        phone: app.phone,
+        office_name: app.office_name,
+        slug: app.office_slug,
+        description: app.description,
+        logo_url: app.logo_url,
+        address: '',
+        is_active: true,
+        status: 'approved',
+      });
+      if (officeErr) throw officeErr;
+
+      // 3. Promote user role
+      const { error: roleErr } = await supabase
+        .from('profiles')
+        .update({ role: 'office' })
+        .eq('id', user.id);
+      if (roleErr) throw roleErr;
+    },
+    onSuccess: () => {
+      toast.success(t.admin.approveSuccess);
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-applications'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
+      onClose();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  return (
+    <Dialog open={Boolean(user)} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t.admin.approve}</DialogTitle>
+          <DialogDescription>{t.admin.confirmApprove}</DialogDescription>
+        </DialogHeader>
+        {user && app && (
+          <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
+            <p className="font-semibold">{app.office_name}</p>
+            <p className="text-muted-foreground">
+              {user.name} — {app.city}
+            </p>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={mutation.isPending}>
+            {t.common.cancel}
+          </Button>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            {mutation.isPending ? t.common.loading : t.admin.approve}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Reject dialog ────────────────────────────────────────────────────────────
+
+function RejectDialog({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
+  const { t } = useI18n();
+  const { profile: adminProfile } = useAuth();
+  const qc = useQueryClient();
+  const [reason, setReason] = useState('');
+  const app = user?.office_applications?.[0] ?? null;
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!user || !app || !adminProfile) return;
+
+      const { error } = await supabase
+        .from('office_applications')
+        .update({
+          status: 'rejected',
+          rejection_reason: reason.trim() || null,
+          reviewed_by: adminProfile.id,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', app.id);
+      if (error) throw error;
+
+      await supabase.from('profiles').update({ role: 'user' }).eq('id', user.id);
+    },
+    onSuccess: () => {
+      toast.success(t.admin.rejectSuccess);
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-applications'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
+      setReason('');
+      onClose();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  return (
+    <Dialog
+      open={Boolean(user)}
+      onOpenChange={(o) => {
+        if (!o) {
+          setReason('');
+          onClose();
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t.admin.reject}</DialogTitle>
+          <DialogDescription>{t.admin.confirmReject}</DialogDescription>
+        </DialogHeader>
+        {user && app && (
+          <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
+            <p className="font-semibold">{app.office_name}</p>
+            <p className="text-muted-foreground">{user.name}</p>
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <Label>{t.admin.rejectionReason}</Label>
+          <Textarea
+            rows={3}
+            placeholder={t.admin.enterRejectionReason}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setReason('');
+              onClose();
+            }}
+            disabled={mutation.isPending}
+          >
+            {t.common.cancel}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? t.common.loading : t.admin.reject}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminUsersPage() {
@@ -315,6 +584,8 @@ export default function AdminUsersPage() {
   const { data: users = [], isLoading, isError } = useUsers();
   const [deletingUser, setDeletingUser] = useState<UserRow | null>(null);
   const [demotingUser, setDemotingUser] = useState<UserRow | null>(null);
+  const [approvingUser, setApprovingUser] = useState<UserRow | null>(null);
+  const [rejectingUser, setRejectingUser] = useState<UserRow | null>(null);
 
   return (
     <div className="space-y-4">
@@ -329,12 +600,21 @@ export default function AdminUsersPage() {
 
       <div className="space-y-3">
         {users.map((u) => (
-          <UserCard key={u.id} user={u} onDelete={setDeletingUser} onDemote={setDemotingUser} />
+          <UserCard
+            key={u.id}
+            user={u}
+            onDelete={setDeletingUser}
+            onDemote={setDemotingUser}
+            onApprove={setApprovingUser}
+            onReject={setRejectingUser}
+          />
         ))}
       </div>
 
       <DeleteDialog user={deletingUser} onClose={() => setDeletingUser(null)} />
       <DemoteDialog user={demotingUser} onClose={() => setDemotingUser(null)} />
+      <ApproveDialog user={approvingUser} onClose={() => setApprovingUser(null)} />
+      <RejectDialog user={rejectingUser} onClose={() => setRejectingUser(null)} />
     </div>
   );
 }
