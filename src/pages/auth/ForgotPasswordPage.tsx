@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
   async function onSubmit(data: FormData) {
     setError('');
     const result = await requestPasswordReset(data.email);
-    if (!result.success) {
+    if (result.success === false) {
       setError(result.error);
       return;
     }

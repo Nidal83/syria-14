@@ -94,7 +94,10 @@ export function useFavoriteProperties() {
         .eq('user_id', profile.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r) => r.properties).filter(Boolean);
+      return (data ?? [])
+        .map((r) => r.properties)
+        .filter(Boolean)
+        .map((p) => ({ ...p, bedrooms: p!.rooms }));
     },
     enabled: Boolean(profile),
     staleTime: 1000 * 60,

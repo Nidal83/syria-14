@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
   async function onSubmit(data: FormData) {
     setError('');
     const result = await updatePassword(data.password);
-    if (!result.success) {
+    if (result.success === false) {
       setError(result.error);
       return;
     }

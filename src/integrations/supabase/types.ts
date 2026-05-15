@@ -48,36 +48,36 @@ export type Database = {
       }
       favorite_offices: {
         Row: {
-          id: string
-          user_id: string
-          office_id: string
           created_at: string
+          id: string
+          office_id: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          office_id: string
           created_at?: string
+          id?: string
+          office_id: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
-          office_id?: string
           created_at?: string
+          id?: string
+          office_id?: string
+          user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "favorite_offices_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "favorite_offices_office_id_fkey"
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorite_offices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -378,6 +378,7 @@ export type Database = {
           bathrooms: number
           building_age: number
           category: string
+          city: string
           contact_phone: string
           created_at: string
           currency: string
@@ -421,6 +422,7 @@ export type Database = {
           bathrooms?: number
           building_age?: number
           category?: string
+          city?: string
           contact_phone?: string
           created_at?: string
           currency?: string
@@ -464,6 +466,7 @@ export type Database = {
           bathrooms?: number
           building_age?: number
           category?: string
+          city?: string
           contact_phone?: string
           created_at?: string
           currency?: string

@@ -282,7 +282,7 @@ function UserRegisterForm() {
       phone: data.phone,
       password: data.password,
     });
-    if (!result.success) {
+    if (result.success === false) {
       setSubmitError(result.error);
       return;
     }

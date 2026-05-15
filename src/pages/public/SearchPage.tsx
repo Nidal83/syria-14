@@ -37,7 +37,7 @@ function useSearchResults(params: URLSearchParams) {
       const minArea = params.get('min_area');
       const maxArea = params.get('max_area');
 
-      if (listingType) q = q.eq('listing_type', listingType);
+      if (listingType) q = q.eq('listing_type', listingType as 'rent' | 'sale');
       if (category) q = q.eq('category', category);
       if (governorateId) q = q.eq('governorate_id', governorateId);
       if (areaId) q = q.eq('area_id', areaId);
@@ -54,20 +54,24 @@ function useSearchResults(params: URLSearchParams) {
       const { data, error } = await q;
       if (error) throw error;
 
-      return (data ?? []).map((p) => ({
-        ...p,
-        bedrooms: p.rooms,
-        amenities: [],
-        address: null,
-        latitude: null,
-        longitude: null,
-        rejection_reason: null,
-        whatsapp: null,
-        meta_title: null,
-        meta_description: null,
-        updated_at: p.created_at,
-        office_id: '',
-      })) as Property[];
+      return (data ?? []).map(
+        (p) =>
+          ({
+            ...p,
+            bedrooms: p.rooms,
+            description: '',
+            amenities: [],
+            address: null,
+            latitude: null,
+            longitude: null,
+            rejection_reason: null,
+            whatsapp: null,
+            meta_title: null,
+            meta_description: null,
+            updated_at: p.created_at,
+            office_id: '',
+          }) as unknown as Property,
+      );
     },
   });
 }
@@ -184,7 +188,12 @@ export default function SearchPage() {
               key={property.id}
               property={property}
               isFavorited={favoriteIds.has(property.id)}
-              onToggleFavorite={isAuthenticated ? (id) => toggleFavorite.mutate(id) : undefined}
+              onToggleFavorite={
+                isAuthenticated
+                  ? (id) =>
+                      toggleFavorite.mutate({ propertyId: id, isFavorited: favoriteIds.has(id) })
+                  : undefined
+              }
             />
           ))}
         </div>

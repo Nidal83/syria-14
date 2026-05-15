@@ -42,7 +42,7 @@ export default function LoginPage() {
   async function onSubmit(data: FormData) {
     setSubmitError('');
     const result = await login(data.email, data.password);
-    if (!result.success) {
+    if (result.success === false) {
       setSubmitError(result.error);
       return;
     }

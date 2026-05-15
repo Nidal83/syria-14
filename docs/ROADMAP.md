@@ -71,6 +71,21 @@ Foundation hygiene. Zero behavior changes.
 - ⚠️ **Activate via Supabase Dashboard + Google Cloud Console.**
   See `docs/SUPABASE_SETUP.md`.
 
+## ✅ Phase 2D — Content & polish _(complete)_
+
+- Hero image replaced with high-res Damascus photo (compressed to 385 KB JPEG).
+- Logo replaced with real Syria 14 brand mark (`/public/logo-syria14.png`).
+- Added `city` TEXT column to `properties` table; backfilled demo rows.
+- Fixed admin RLS policies (`properties`, `profiles`) to use `profiles.role`
+  instead of the broken `has_role()` / `user_roles` path.
+- Built SearchPage from stub: full URL-param filtering, skeleton loader,
+  active-filter chips.
+- Built PropertyDetailPage: image gallery, related properties, WhatsApp/phone CTAs.
+- Built UsersPage approval flow: Approve/Reject dialogs, creates `offices` record.
+- Featured Properties section on home page (3 cards from `sampleProperties`,
+  bilingual, links to `/search`). Phase 3 will replace with real DB data.
+- Regenerated Supabase TypeScript types; fixed all TypeScript errors.
+
 ---
 
 ## 🔜 Phase 2E — Password policy + rate limit + CAPTCHA

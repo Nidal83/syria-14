@@ -270,6 +270,14 @@ export const en: Translations = {
     heroSubtitle: 'Thousands of properties for sale and rent across Syria',
   },
 
+  home: {
+    featured: {
+      title: 'Featured Properties',
+      subtitle: 'Browse our latest listings',
+      view_all: 'View all properties',
+    },
+  },
+
   errors: {
     generic: 'An unexpected error occurred. Please try again.',
     notFound: 'Item not found.',

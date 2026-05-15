@@ -59,7 +59,7 @@ function useApplications(statusFilter: string) {
 
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as ApplicationWithProfile[];
+      return (data ?? []) as unknown as ApplicationWithProfile[];
     },
   });
 }
