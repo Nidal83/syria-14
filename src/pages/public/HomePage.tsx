@@ -12,7 +12,7 @@ export default function HomePage() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url('/hero-damascus.jpg'), url('/hero-syria.svg')`,
+            backgroundImage: `url('/hero-damascus.png'), url('/hero-syria.svg')`,
           }}
         />
 
