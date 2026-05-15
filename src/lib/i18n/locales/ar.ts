@@ -185,6 +185,14 @@ export const ar = {
     totalOffices: 'إجمالي المكاتب',
     totalProperties: 'إجمالي العقارات',
     pendingReview: 'قيد المراجعة',
+    deleteUser: 'حذف المستخدم',
+    confirmDeleteUser: 'هل تريد حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.',
+    deleteUserSuccess: 'تم حذف المستخدم',
+    demoteToUser: 'تحويل إلى مستخدم',
+    confirmDemoteToUser: 'هل تريد تغيير دور هذا المستخدم إلى مستخدم عادي؟',
+    demoteSuccess: 'تم تحديث الدور بنجاح',
+    documents: 'الوثائق',
+    noDocuments: 'لا توجد وثائق مرفوعة',
   },
 
   pages: {

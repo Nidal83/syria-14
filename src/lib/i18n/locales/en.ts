@@ -187,6 +187,14 @@ export const en: Translations = {
     totalOffices: 'Total Offices',
     totalProperties: 'Total Properties',
     pendingReview: 'Pending Review',
+    deleteUser: 'Delete User',
+    confirmDeleteUser: 'Are you sure you want to delete this user? This cannot be undone.',
+    deleteUserSuccess: 'User deleted',
+    demoteToUser: 'Change to User',
+    confirmDemoteToUser: "Change this user's role to regular user?",
+    demoteSuccess: 'Role updated successfully',
+    documents: 'Documents',
+    noDocuments: 'No documents uploaded',
   },
 
   pages: {
