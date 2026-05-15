@@ -126,7 +126,35 @@ function ApplicationRow({
             {app.profiles?.name} · {app.profiles?.email} · {app.city}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {/* Always-visible action buttons for pending applications */}
+          {app.status === 'pending_review' && (
+            <>
+              <Button
+                size="sm"
+                className="gap-1.5"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onApprove(app);
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.admin.approve}</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="gap-1.5"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReject(app);
+                }}
+              >
+                <XCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.admin.reject}</span>
+              </Button>
+            </>
+          )}
           <span className="hidden text-xs text-muted-foreground sm:block">
             {format(new Date(app.created_at), 'dd/MM/yyyy')}
           </span>

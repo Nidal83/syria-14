@@ -22,8 +22,15 @@ export default function PropertyCard({ property, isFavorited, onToggleFavorite }
     rejected: 'bg-red-100 text-red-800',
   };
 
+  // Fallback to id if slug is missing so the link is never broken
+  const href = PATHS.propertyDetail(property.slug || property.id);
+
   return (
-    <div className="hover:shadow-card-hover group relative overflow-hidden rounded-xl border border-border/60 bg-card shadow-card transition-all hover:-translate-y-0.5">
+    <Link
+      to={href}
+      className="hover:shadow-card-hover group relative block cursor-pointer overflow-hidden rounded-xl border border-border/60 bg-card shadow-card transition-all hover:-translate-y-0.5"
+    >
+      {/* Image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {property.featured_image ? (
           <img
@@ -45,14 +52,15 @@ export default function PropertyCard({ property, isFavorited, onToggleFavorite }
           <button
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               onToggleFavorite(property.id);
             }}
-            className="absolute end-3 top-3 rounded-full bg-background/80 p-1.5 backdrop-blur"
+            className="absolute end-3 top-3 rounded-full bg-background/80 p-1.5 backdrop-blur transition-transform hover:scale-110"
             aria-label={t.pages.favorites}
           >
             <Heart
               className={cn(
-                'h-4 w-4',
+                'h-4 w-4 transition-colors',
                 isFavorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground',
               )}
             />
@@ -60,7 +68,8 @@ export default function PropertyCard({ property, isFavorited, onToggleFavorite }
         )}
       </div>
 
-      <Link to={PATHS.propertyDetail(property.slug)} className="block space-y-2 p-4">
+      {/* Info */}
+      <div className="space-y-2 p-4">
         <h3 className="line-clamp-1 font-semibold leading-tight">{property.title}</h3>
         {property.city && (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -99,7 +108,7 @@ export default function PropertyCard({ property, isFavorited, onToggleFavorite }
             {property.listing_type === 'sale' ? t.property.sale : t.property.rent}
           </Badge>
         </div>
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 }
