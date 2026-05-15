@@ -169,6 +169,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const p = await fetchProfile(data.user);
       if (!p) return { success: false, error: 'Failed to load profile', code: 'unknown' };
 
+      // Update context immediately — onAuthStateChange fires async and would
+      // arrive after navigate(), leaving the UI in an unauthenticated state.
+      setProfile(p);
+      setSession(data.session);
+
       return { success: true, profile: p };
     },
     [fetchProfile],
