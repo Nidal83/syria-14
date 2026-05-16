@@ -9,6 +9,17 @@ they naturally belong.
 
 ---
 
+## Bug fixes
+
+- **Auth — profile-load hardening** (2026-05-16): Structured `[auth]` diagnostic
+  logging per query step (profiles, bootstrap, retry). Automatic idempotent
+  backfill via `bootstrap_current_user()` RPC when profile/role rows are missing.
+  Clean `signOut()` before returning failure from `login()` — eliminates the
+  half-authenticated state. Same sign-out guard in `onAuthStateChange` for
+  `SIGNED_IN` events. New `profile_not_setup` error code with bilingual message.
+
+---
+
 ## ✅ Phase 0 — De-Lovable & foundation _(complete)_
 
 Foundation hygiene. Zero behavior changes.

@@ -43,7 +43,7 @@ export default function LoginPage() {
     setSubmitError('');
     const result = await login(data.email, data.password);
     if (result.success === false) {
-      setSubmitError(result.error);
+      setSubmitError(result.code === 'profile_not_setup' ? t.auth.profile_not_setup : result.error);
       return;
     }
     const { profile } = result;

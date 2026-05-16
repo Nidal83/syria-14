@@ -10,7 +10,11 @@ export type AuthResult = { success: true } | { success: false; error: string };
 
 export type LoginResult =
   | { success: true; profile: Profile }
-  | { success: false; error: string; code: 'invalid_credentials' | 'unknown' };
+  | {
+      success: false;
+      error: string;
+      code: 'invalid_credentials' | 'profile_not_setup' | 'unknown';
+    };
 
 // ─── Context shape ────────────────────────────────────────────────────────────
 
@@ -51,26 +55,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Prevent double-fetch on rapid auth-state events
   const fetchingRef = useRef(false);
 
-  const fetchProfile = useCallback(async (user: SupabaseUser): Promise<Profile | null> => {
-    if (fetchingRef.current) return null;
-    fetchingRef.current = true;
+  // ── fetchProfile ──────────────────────────────────────────────────────────
+  // Returns:
+  //   Profile   — success
+  //   null      — real failure (caller must sign out to clear the broken session)
+  //   undefined — another fetch is already in-flight (caller should do nothing)
+  const fetchProfile = useCallback(
+    async (user: SupabaseUser): Promise<Profile | null | undefined> => {
+      if (fetchingRef.current) return undefined;
+      fetchingRef.current = true;
 
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, email, phone, avatar_url, role, created_at, updated_at')
-        .eq('id', user.id)
-        .single();
+      try {
+        // Step 1: read profiles row
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, email, phone, avatar_url, role, created_at, updated_at')
+          .eq('id', user.id)
+          .single();
 
-      if (error || !data) return null;
+        if (profileError) {
+          // PGRST116 = "no rows returned" — not a query error, handle as missing
+          if (profileError.code !== 'PGRST116') {
+            console.error('[auth] fetchProfile failed', {
+              step: 'profiles',
+              userId: user.id,
+              code: profileError.code,
+              message: profileError.message,
+              details: profileError.details,
+            });
+            return null;
+          }
+        }
 
-      return data as Profile;
-    } catch {
-      return null;
-    } finally {
-      fetchingRef.current = false;
-    }
-  }, []);
+        // Step 2: profile row missing — attempt idempotent bootstrap
+        if (!profileData) {
+          const { error: rpcError } = await supabase.rpc('bootstrap_current_user');
+
+          if (rpcError) {
+            console.error('[auth] fetchProfile failed', {
+              step: 'bootstrap',
+              userId: user.id,
+              code: rpcError.code,
+              message: rpcError.message,
+              details: rpcError.details,
+            });
+            return null;
+          }
+
+          // One retry after bootstrap
+          const { data: retriedData, error: retriedError } = await supabase
+            .from('profiles')
+            .select('id, name, email, phone, avatar_url, role, created_at, updated_at')
+            .eq('id', user.id)
+            .single();
+
+          if (retriedError || !retriedData) {
+            console.error('[auth] fetchProfile failed', {
+              step: 'profiles_retry',
+              userId: user.id,
+              code: retriedError?.code,
+              message: retriedError?.message,
+              details: retriedError?.details,
+            });
+            return null;
+          }
+
+          return retriedData as Profile;
+        }
+
+        return profileData as Profile;
+      } finally {
+        fetchingRef.current = false;
+      }
+    },
+    [],
+  );
 
   const refreshProfile = useCallback(async () => {
     if (!session?.user) return;
@@ -119,7 +178,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTimeout(async () => {
           if (!mounted) return;
           const p = await fetchProfile(newSession.user);
-          setProfile(p);
+
+          // undefined = dedup guard fired (another fetch in-flight); don't interfere
+          if (p === undefined) {
+            setIsLoading(false);
+            return;
+          }
+
+          // null after SIGNED_IN = session exists but profile is irrecoverably missing
+          if (!p && event === 'SIGNED_IN') {
+            await supabase.auth.signOut();
+            setProfile(null);
+          } else {
+            setProfile(p);
+          }
           setIsLoading(false);
         }, 0);
       } else {
@@ -135,7 +207,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (existing?.user) {
         fetchProfile(existing.user).then((p) => {
           if (mounted) {
-            setProfile(p);
+            // undefined = dedup guard (onAuthStateChange already handling it)
+            if (p !== undefined) setProfile(p);
             setIsLoading(false);
           }
         });
@@ -167,7 +240,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const p = await fetchProfile(data.user);
-      if (!p) return { success: false, error: 'Failed to load profile', code: 'unknown' };
+      if (!p) {
+        // Supabase holds an active session but we have no usable profile.
+        // Sign out before returning so the client is left in a clean state.
+        await supabase.auth.signOut();
+        return {
+          success: false,
+          error: 'Account not fully set up. Please contact support.',
+          code: 'profile_not_setup',
+        };
+      }
 
       // Update context immediately — onAuthStateChange fires async and would
       // arrive after navigate(), leaving the UI in an unauthenticated state.

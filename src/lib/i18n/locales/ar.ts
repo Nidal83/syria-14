@@ -76,6 +76,7 @@ export const ar = {
     checkEmail: 'تحقق من بريدك الإلكتروني للحصول على رابط إعادة التعيين',
     showPassword: 'إظهار كلمة المرور',
     hidePassword: 'إخفاء كلمة المرور',
+    profile_not_setup: 'الحساب غير مكتمل، يرجى التواصل مع الدعم.',
   },
 
   roles: {

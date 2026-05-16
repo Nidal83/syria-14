@@ -78,6 +78,7 @@ export const en: Translations = {
     checkEmail: 'Check your email for a reset link',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    profile_not_setup: 'Account not fully set up. Please contact support.',
   },
 
   roles: {
