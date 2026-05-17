@@ -123,3 +123,50 @@ export async function updateFeaturedImage(propertyId: string, url: string): Prom
     .eq('id', propertyId);
   if (error) throw new Error(error.message);
 }
+
+// ─── Office property list ─────────────────────────────────────────────────────
+
+export interface OfficeProperty {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
+  status: string;
+  listing_type: string;
+  property_type: string;
+  rooms: number;
+  bathrooms: number;
+  area_size: number;
+  governorate_id: string | null;
+  area_id: string | null;
+  featured_image: string | null;
+  created_at: string;
+  governorates: { name_ar: string; name_en: string } | null;
+  areas: { name_ar: string; name_en: string } | null;
+  property_images: { image_url: string; is_cover: boolean }[];
+}
+
+export async function listOfficeProperties(officeId: string): Promise<OfficeProperty[]> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select(
+      `id, title, price, currency, status, listing_type, property_type,
+       rooms, bathrooms, area_size, governorate_id, area_id, featured_image, created_at,
+       governorates(name_ar, name_en),
+       areas(name_ar, name_en),
+       property_images(image_url, is_cover)`,
+    )
+    .eq('office_id', officeId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as unknown as OfficeProperty[];
+}
+
+export async function updatePropertyStatus(
+  propertyId: string,
+  status: 'active' | 'hidden',
+): Promise<void> {
+  const { error } = await supabase.from('properties').update({ status }).eq('id', propertyId);
+  if (error) throw new Error(error.message);
+}

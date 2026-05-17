@@ -110,6 +110,10 @@ export const ar = {
       pending: 'قيد المراجعة',
       active: 'نشط',
       rejected: 'مرفوض',
+      hidden: 'مخفي',
+      sold: 'مباع',
+      rented: 'مؤجر',
+      inactive: 'غير نشط',
     },
     categories: {
       residential: 'سكني',
@@ -125,6 +129,7 @@ export const ar = {
     contactOffice: 'التواصل مع المكتب',
     whatsapp: 'واتساب',
     noProperties: 'لا توجد عقارات',
+    noPropertiesHint: 'أضف عقارك الأول للبدء في النشر',
     sqm: 'م²',
     currency: {
       SYP: 'ل.س',
@@ -223,6 +228,11 @@ export const ar = {
       publish: 'نشر الإعلان',
       cancel: 'إلغاء',
       publishing: 'جارٍ النشر...',
+      hide: 'إخفاء',
+      show: 'إظهار',
+      viewPublic: 'عرض الصفحة',
+      hiddenSuccess: 'تم إخفاء العقار',
+      shownSuccess: 'تم إظهار العقار',
     },
     success: {
       created: 'تم نشر العقار بنجاح',
@@ -290,6 +300,31 @@ export const ar = {
     dashboard: 'لوحة تحكم المكتب',
     myProperties: 'عقاراتي',
     noOffice: 'لا توجد مكاتب',
+    profile: {
+      title: 'ملف المكتب',
+      subtitle: 'بيانات مكتبك وإحصائياتك',
+    },
+    status: {
+      approved: 'معتمد',
+      pending: 'قيد المراجعة',
+      rejected: 'مرفوض',
+    },
+    stats: {
+      total: 'إجمالي العقارات',
+      active: 'نشطة',
+      hidden: 'مخفية',
+      sold: 'مباعة/مؤجرة',
+    },
+    meta: {
+      registered: 'تاريخ التسجيل',
+      approved: 'تاريخ الاعتماد',
+      officeId: 'معرّف المكتب',
+    },
+    form: {
+      save: 'حفظ التغييرات',
+      saving: 'جارٍ الحفظ...',
+      saved: 'تم حفظ التغييرات',
+    },
   },
 
   admin: {
@@ -392,6 +427,36 @@ export const ar = {
     unauthorized: 'غير مصرح لك بالوصول لهذه الصفحة.',
     forbidden: 'ممنوع الوصول.',
     network: 'خطأ في الاتصال بالشبكة.',
+  },
+
+  account: {
+    title: 'الحساب',
+    info: {
+      heading: 'معلومات الحساب',
+      accountType: 'نوع الحساب',
+      realEstateOffice: 'مكتب عقاري',
+      joined: 'تاريخ الانضمام',
+    },
+    actions: {
+      editProfile: 'تعديل الملف الشخصي',
+    },
+    security: {
+      heading: 'الأمان',
+    },
+    notifications: {
+      heading: 'إشعارات البريد',
+      inquiries: 'استفسارات العقارات الجديدة',
+      system: 'إعلانات النظام',
+      saved: 'تم الحفظ',
+    },
+  },
+
+  notifications: {
+    title: 'الإشعارات',
+    empty: 'لا توجد إشعارات بعد',
+    markAllRead: 'تعليم الكل كمقروء',
+    viewAll: 'عرض الكل',
+    justNow: 'الآن',
   },
 
   validation: {

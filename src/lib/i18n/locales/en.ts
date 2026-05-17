@@ -112,6 +112,10 @@ export const en: Translations = {
       pending: 'Pending Review',
       active: 'Active',
       rejected: 'Rejected',
+      hidden: 'Hidden',
+      sold: 'Sold',
+      rented: 'Rented',
+      inactive: 'Inactive',
     },
     categories: {
       residential: 'Residential',
@@ -127,6 +131,7 @@ export const en: Translations = {
     contactOffice: 'Contact Office',
     whatsapp: 'WhatsApp',
     noProperties: 'No properties found',
+    noPropertiesHint: 'Add your first property to start publishing',
     sqm: 'm²',
     currency: {
       SYP: 'SYP',
@@ -225,6 +230,11 @@ export const en: Translations = {
       publish: 'Publish listing',
       cancel: 'Cancel',
       publishing: 'Publishing...',
+      hide: 'Hide',
+      show: 'Show',
+      viewPublic: 'View page',
+      hiddenSuccess: 'Property hidden',
+      shownSuccess: 'Property is now visible',
     },
     success: {
       created: 'Property published successfully',
@@ -292,6 +302,31 @@ export const en: Translations = {
     dashboard: 'Office Dashboard',
     myProperties: 'My Properties',
     noOffice: 'No offices found',
+    profile: {
+      title: 'Office Profile',
+      subtitle: 'Your business details and stats',
+    },
+    status: {
+      approved: 'Approved',
+      pending: 'Pending review',
+      rejected: 'Rejected',
+    },
+    stats: {
+      total: 'Total listings',
+      active: 'Active',
+      hidden: 'Hidden',
+      sold: 'Sold/Rented',
+    },
+    meta: {
+      registered: 'Registered on',
+      approved: 'Approved on',
+      officeId: 'Office ID',
+    },
+    form: {
+      save: 'Save changes',
+      saving: 'Saving...',
+      saved: 'Changes saved',
+    },
   },
 
   admin: {
@@ -394,6 +429,36 @@ export const en: Translations = {
     unauthorized: 'You are not authorized to access this page.',
     forbidden: 'Access forbidden.',
     network: 'Network connection error.',
+  },
+
+  account: {
+    title: 'Account',
+    info: {
+      heading: 'Account information',
+      accountType: 'Account type',
+      realEstateOffice: 'Real Estate Office',
+      joined: 'Joined',
+    },
+    actions: {
+      editProfile: 'Edit profile',
+    },
+    security: {
+      heading: 'Security',
+    },
+    notifications: {
+      heading: 'Email notifications',
+      inquiries: 'New property inquiries',
+      system: 'System announcements',
+      saved: 'Saved',
+    },
+  },
+
+  notifications: {
+    title: 'Notifications',
+    empty: 'No notifications yet',
+    markAllRead: 'Mark all as read',
+    viewAll: 'View all',
+    justNow: 'just now',
   },
 
   validation: {

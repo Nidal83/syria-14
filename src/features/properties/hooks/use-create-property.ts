@@ -30,7 +30,7 @@ export function useCreateProperty() {
       const property = await insertProperty({
         ...values,
         office_id: office.id,
-        status: 'pending',
+        status: 'active',
         city: '',
         furnished: values.features.includes('furnished'),
       });
