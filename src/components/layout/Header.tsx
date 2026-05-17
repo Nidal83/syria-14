@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Heart, User, LogOut, LayoutDashboard, Settings } from 'lucide-react';
+import { Menu, X, Heart, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { Button } from '@/components/ui/button';

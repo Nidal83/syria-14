@@ -12,9 +12,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/providers/AuthProvider';
 import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';

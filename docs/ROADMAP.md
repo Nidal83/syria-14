@@ -119,6 +119,23 @@ Foundation hygiene. Zero behavior changes.
 
 ---
 
+## Stage 2 — Infrastructure
+
+- [x] Prompt 1: CI/CD + Sentry — automated verification and error tracking
+
+### Branch protection
+
+After the CI workflow runs successfully on a PR for the first time:
+Settings → Branches → Branch protection rules → Add rule
+
+- Branch name pattern: `main`
+- Require status checks to pass before merging: ON
+- Required: "Typecheck + Lint + Format + Build + Test"
+- Require branches to be up to date: ON
+- Do not allow bypassing: ON
+
+---
+
 ## 🔜 Phase 2E — Password policy + rate limit + CAPTCHA
 
 - Server-side password policy in Supabase Dashboard.

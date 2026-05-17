@@ -20,6 +20,8 @@ const envSchema = z.object({
   VITE_APP_NAME: z.string().default('Syria Homes Nest'),
   VITE_APP_URL: z.string().url().optional(),
   MODE: z.enum(['development', 'production', 'test']).optional(),
+  VITE_SENTRY_DSN: z.string().url().optional(),
+  VITE_APP_ENV: z.enum(['development', 'preview', 'production']).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -48,3 +50,5 @@ export const env = loadEnv();
 
 export const isDev = import.meta.env.DEV;
 export const isProd = import.meta.env.PROD;
+export const sentryEnabled = Boolean(env.VITE_SENTRY_DSN);
+export const appEnv = env.VITE_APP_ENV ?? (import.meta.env.DEV ? 'development' : 'production');

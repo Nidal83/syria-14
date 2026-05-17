@@ -41,12 +41,12 @@ future auth callback URL without needing to update Supabase every release.
 
 **Where:** Auth → Sign In / Up → Email
 
-| Setting | Value |
-|---|---|
-| Enable email signup | ON |
-| **Confirm email** | **ON** |
-| Secure email change | ON |
-| Allow new users to sign up | ON |
+| Setting                    | Value  |
+| -------------------------- | ------ |
+| Enable email signup        | ON     |
+| **Confirm email**          | **ON** |
+| Secure email change        | ON     |
+| Allow new users to sign up | ON     |
 
 When this is ON, new sign-ups must click the link in the confirmation email
 before they can sign in. Our app handles this:
@@ -68,11 +68,11 @@ is acceptable for a production-facing real-estate platform.
 
 Recommended providers (all have free tiers):
 
-| Provider | Free tier | Setup difficulty |
-|---|---|---|
-| Resend | 3,000/month | Easy (5 min) |
-| SendGrid | 100/day | Medium |
-| AWS SES | First 62,000/month free if sending from EC2 | Hard |
+| Provider | Free tier                                   | Setup difficulty |
+| -------- | ------------------------------------------- | ---------------- |
+| Resend   | 3,000/month                                 | Easy (5 min)     |
+| SendGrid | 100/day                                     | Medium           |
+| AWS SES  | First 62,000/month free if sending from EC2 | Hard             |
 
 After SMTP is configured, customize the email templates under Auth → Emails
 → Templates:
@@ -114,6 +114,7 @@ Translate to Arabic + English, replace the sender name with "Syria14".
 ### 4.2 Plug into Supabase
 
 In Supabase Auth → Providers → Google:
+
 - Enable: ON
 - Client ID: from step 4.1
 - Client Secret: from step 4.1
@@ -132,11 +133,11 @@ In Supabase Auth → Providers → Google:
 
 **Where:** Auth → Sign In / Up → Auth Policies
 
-| Setting | Recommended |
-|---|---|
-| Minimum password length | 8 |
-| Required characters | "Letters and digits" or stronger |
-| Leaked password protection | ON (Pro plan) |
+| Setting                    | Recommended                      |
+| -------------------------- | -------------------------------- |
+| Minimum password length    | 8                                |
+| Required characters        | "Letters and digits" or stronger |
+| Leaked password protection | ON (Pro plan)                    |
 
 Our forms already enforce `minLength={8}` client-side; this server-side
 setting is the actual enforcement and must match.
@@ -149,13 +150,13 @@ setting is the actual enforcement and must match.
 
 Supabase's defaults are generous. Tightening recommended:
 
-| Endpoint | Default | Recommended for prod |
-|---|---|---|
-| Token refreshes per IP / 5min | 1,800 | keep |
-| Sign-in attempts per IP / 5min | 30 | keep |
-| Sign-up attempts per IP / 5min | 30 | 10 |
-| Password resets per IP / 5min | 5 | keep |
-| OTPs per IP / 5min | 5 | keep |
+| Endpoint                       | Default | Recommended for prod |
+| ------------------------------ | ------- | -------------------- |
+| Token refreshes per IP / 5min  | 1,800   | keep                 |
+| Sign-in attempts per IP / 5min | 30      | keep                 |
+| Sign-up attempts per IP / 5min | 30      | 10                   |
+| Password resets per IP / 5min  | 5       | keep                 |
+| OTPs per IP / 5min             | 5       | keep                 |
 
 For larger projects, consider hCaptcha (Auth → Settings → Captcha protection
 → ON) which adds CAPTCHA challenges on top of rate limits.
@@ -167,6 +168,7 @@ For larger projects, consider hCaptcha (Auth → Settings → Captcha protection
 **Where:** Auth → JWT Settings
 
 Defaults are sane:
+
 - Access token TTL: 3600s (1 hour)
 - Refresh token TTL: 5184000s (60 days)
 
@@ -181,9 +183,43 @@ Phase 5 (subdomain split + MFA).
 
 To be tightened in Phase 3 (Database hardening). Currently any authenticated
 user can upload any binary up to 50MB. Phase 3 will add:
+
 - Path prefix enforcement (`{auth.uid()}/...`)
 - File-size check via Postgres RLS using `octet_length`
 - MIME-type allowlist
+
+---
+
+## Sentry setup (Stage 2)
+
+Production error tracking. Sign up free at sentry.io.
+
+### One-time setup
+
+1. Create a Sentry organization + a "React" project for Syria14.
+2. Copy the DSN from Project Settings → Client Keys (DSN).
+3. Set `VITE_SENTRY_DSN` in Vercel project settings for Production and
+   Preview environments. Local dev can leave it empty.
+4. Generate an auth token: User Settings → Auth Tokens → "Create New".
+   Scopes: `project:releases` and `org:read`.
+5. In Vercel project settings, add (server-side env, **NOT** `VITE_*`):
+   ```
+   SENTRY_AUTH_TOKEN
+   SENTRY_ORG       (your Sentry org slug)
+   SENTRY_PROJECT   (your Sentry project slug, e.g. syria14-web)
+   ```
+6. Redeploy. Source maps upload automatically; errors will resolve with
+   readable component names instead of minified gibberish.
+
+### Verifying it works
+
+Open the deployed site → DevTools → run:
+
+```js
+throw new Error('Sentry test ' + Date.now());
+```
+
+Within a minute, the error appears in Sentry with stack trace + URL + user agent.
 
 ---
 

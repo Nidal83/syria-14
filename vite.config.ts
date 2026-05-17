@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import path from 'node:path';
 
 // https://vitejs.dev/config/
@@ -11,7 +12,20 @@ export default defineConfig({
   preview: {
     port: 8080,
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Sentry source-map upload runs only when all three envs are set,
+    // which is typically only in production builds on Vercel.
+    ...(process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT
+      ? [
+          sentryVitePlugin({
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+          }),
+        ]
+      : []),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

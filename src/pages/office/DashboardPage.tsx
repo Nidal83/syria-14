@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Home, Plus, Settings } from 'lucide-react';
+import { Home, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
