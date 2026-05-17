@@ -82,6 +82,15 @@ Foundation hygiene. Zero behavior changes.
 - ⚠️ **Activate via Supabase Dashboard + Google Cloud Console.**
   See `docs/SUPABASE_SETUP.md`.
 
+## ✅ office/NewPropertyPage — Add Property form _(complete)_
+
+- `office/NewPropertyPage`: full Add Property form (basics, location, details, features, contact, photos with Supabase Storage upload). Was a stub.
+- Feature slice at `src/features/properties/` — zod schema, two services (properties + property-images), six section components, `useCreateProperty` hook.
+- Image upload: canvas-based compression for files >1 MB, upload path `{office_id}/{property_id}/{uuid}.{ext}`, `property_images` rows + `properties.featured_image` updated post-upload.
+- Partial-upload resilience: property row is preserved if some images fail; warning toast shown.
+- Bilingual (AR/EN) with new i18n keys under `property.form`, `property.section`, `property.field`, `property.feature`, `property.photos`, `property.actions`, `property.types`, `property.directions`, `property.views`, `property.paymentMethods`, `property.ownershipTypes`, `property.success`, `property.error`, `property.warning`, and top-level `validation`.
+- Drag-to-reorder photos (HTML5 DnD, desktop) + up/down buttons (mobile).
+
 ## ✅ Phase 2D — Content & polish _(complete)_
 
 - Hero image replaced with high-res Damascus photo (compressed to 385 KB JPEG).
