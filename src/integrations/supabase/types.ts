@@ -161,6 +161,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          data: Json | null
+          email_sent_at: string | null
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          email_sent_at?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          email_sent_at?: string | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       office_applications: {
         Row: {
           city: string
@@ -409,7 +448,7 @@ export type Database = {
           rejection_reason: string | null
           rooms: number
           slug: string | null
-          status: string
+          status: Database["public"]["Enums"]["property_status"]
           title: string
           total_floors: number
           updated_at: string
@@ -453,7 +492,7 @@ export type Database = {
           rejection_reason?: string | null
           rooms?: number
           slug?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["property_status"]
           title: string
           total_floors?: number
           updated_at?: string
@@ -497,7 +536,7 @@ export type Database = {
           rejection_reason?: string | null
           rooms?: number
           slug?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["property_status"]
           title?: string
           total_floors?: number
           updated_at?: string
@@ -558,45 +597,6 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          id: string
-          user_id: string
-          type: Database["public"]["Enums"]["notification_type"]
-          title: string
-          body: string | null
-          link: string | null
-          data: Json | null
-          read_at: string | null
-          email_sent_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          type: Database["public"]["Enums"]["notification_type"]
-          title: string
-          body?: string | null
-          link?: string | null
-          data?: Json | null
-          read_at?: string | null
-          email_sent_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          type?: Database["public"]["Enums"]["notification_type"]
-          title?: string
-          body?: string | null
-          link?: string | null
-          data?: Json | null
-          read_at?: string | null
-          email_sent_at?: string | null
-          created_at?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           id: string
@@ -620,10 +620,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      bootstrap_current_user: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      bootstrap_current_user: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -634,9 +631,20 @@ export type Database = {
     }
     Enums: {
       listing_type: "rent" | "sale"
-      notification_type: "property_published" | "office_approved" | "office_rejected" | "new_inquiry" | "system"
+      notification_type:
+        | "property_published"
+        | "office_approved"
+        | "office_rejected"
+        | "new_inquiry"
+        | "system"
       office_status: "pending" | "approved" | "rejected"
-      property_status: "pending" | "active" | "hidden" | "inactive" | "sold" | "rented"
+      property_status:
+        | "pending"
+        | "active"
+        | "hidden"
+        | "inactive"
+        | "sold"
+        | "rented"
       user_role: "user" | "pending_office" | "office" | "admin"
     }
     CompositeTypes: {
@@ -766,7 +774,22 @@ export const Constants = {
   public: {
     Enums: {
       listing_type: ["rent", "sale"],
+      notification_type: [
+        "property_published",
+        "office_approved",
+        "office_rejected",
+        "new_inquiry",
+        "system",
+      ],
       office_status: ["pending", "approved", "rejected"],
+      property_status: [
+        "pending",
+        "active",
+        "hidden",
+        "inactive",
+        "sold",
+        "rented",
+      ],
       user_role: ["user", "pending_office", "office", "admin"],
     },
   },

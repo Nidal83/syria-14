@@ -1,5 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import type { CreatePropertyValues } from '../schemas/property.schema';
+
+type PropertyStatus = Database['public']['Enums']['property_status'];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,7 +68,7 @@ export async function getMyOffice(userId: string): Promise<Office | null> {
 
 type PropertyInsert = Omit<CreatePropertyValues, 'images'> & {
   office_id: string;
-  status: string;
+  status: PropertyStatus;
   city: string;
   furnished: boolean;
 };
@@ -131,7 +134,7 @@ export interface OfficeProperty {
   title: string;
   price: number;
   currency: string;
-  status: string;
+  status: PropertyStatus;
   listing_type: string;
   property_type: string;
   rooms: number;
