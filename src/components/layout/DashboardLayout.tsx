@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/providers/AuthProvider';
 import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { cn } from '@/lib/utils';
 
 type DashboardRole = 'office' | 'admin';
@@ -135,6 +136,7 @@ export function DashboardLayout({ role }: Props) {
 
           <div className="ms-auto flex items-center gap-3">
             <LanguageSwitcher />
+            <NotificationBell />
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profile?.avatar_url ?? undefined} />
