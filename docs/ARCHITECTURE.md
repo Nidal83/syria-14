@@ -68,9 +68,16 @@ in `docs/ROADMAP.md` track the migration.
 All env vars are validated at boot via `src/shared/config/env.ts`. There is
 no other path. Any code wanting an env value imports `env` from that module.
 
+## Domain rules
+
+- **Approved offices publish properties directly** with `status='active'`. There is no per-listing admin approval step.
+- **Offices cannot DELETE properties.** The RLS policy grants SELECT/INSERT/UPDATE only. Offices hide (`'hidden'`) and re-show (`'active'`) listings via the `property_status` enum.
+- **Admins receive an in-app notification on every new property publish.** The `trg_notify_admins_on_property_publish` AFTER INSERT trigger fires a SECURITY DEFINER function — it cannot be spoofed from the client.
+
 ## Roles
 
 See README for the role matrix. The implementation invariant:
+
 - Role checks in RLS use `has_role(auth.uid(), 'role'::user_role)`.
 - Frontend role checks use the `useRole()` hook (Phase 1).
 - A user can hold multiple roles. The `user_roles` table is N:N, intentionally

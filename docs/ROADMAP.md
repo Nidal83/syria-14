@@ -91,6 +91,17 @@ Foundation hygiene. Zero behavior changes.
 - Bilingual (AR/EN) with new i18n keys under `property.form`, `property.section`, `property.field`, `property.feature`, `property.photos`, `property.actions`, `property.types`, `property.directions`, `property.views`, `property.paymentMethods`, `property.ownershipTypes`, `property.success`, `property.error`, `property.warning`, and top-level `validation`.
 - Drag-to-reorder photos (HTML5 DnD, desktop) + up/down buttons (mobile).
 
+## ✅ Office subsystem _(complete)_
+
+- **Direct publish:** Approved offices publish properties with `status='active'` immediately — no per-listing admin approval.
+- **No delete:** Offices hide (`'hidden'`) or re-show (`'active'`) properties; DELETE is blocked at the RLS level.
+- **In-app notifications:** `notifications` table + header bell + realtime (Supabase Realtime `postgres_changes`) + mark-as-read. Admins receive a notification on every new property publish via a SECURITY DEFINER trigger.
+- **Office Profile page** (`/office/profile`): office name, stage badge, 2×2 stats (total/active/hidden/sold), editable fields (name, phone, WhatsApp, address, description, governorate/area).
+- **My Account page** (`/office/settings`): account info + avatar initials, edit profile dialog, change-password, sign-out, notification preferences (Switch toggles persisted to `profiles.notification_prefs` JSONB).
+- **My Properties page** (`/office/properties`): filter tabs (all/active/hidden) with counts, hide/show toggle with optimistic update, edit link, public-page link. No delete button.
+- **Email notifications** (Phase G, optional): Edge Function `send-notification-email` — dispatches HTML email via Resend API on each notification row insert; skips gracefully if `RESEND_API_KEY` is unset.
+- `property_status` and `notification_type` Postgres enums; RLS policies split from `FOR ALL` into per-command SELECT/INSERT/UPDATE (no DELETE).
+
 ## ✅ Phase 2D — Content & polish _(complete)_
 
 - Hero image replaced with high-res Damascus photo (compressed to 385 KB JPEG).
