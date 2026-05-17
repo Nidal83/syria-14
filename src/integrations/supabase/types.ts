@@ -343,6 +343,7 @@ export type Database = {
           email: string
           id: string
           name: string
+          notification_prefs: Json
           phone: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -353,6 +354,7 @@ export type Database = {
           email?: string
           id: string
           name?: string
+          notification_prefs?: Json
           phone?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -363,6 +365,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string
+          notification_prefs?: Json
           phone?: string
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -555,6 +558,45 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: Database["public"]["Enums"]["notification_type"]
+          title: string
+          body: string | null
+          link: string | null
+          data: Json | null
+          read_at: string | null
+          email_sent_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: Database["public"]["Enums"]["notification_type"]
+          title: string
+          body?: string | null
+          link?: string | null
+          data?: Json | null
+          read_at?: string | null
+          email_sent_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          title?: string
+          body?: string | null
+          link?: string | null
+          data?: Json | null
+          read_at?: string | null
+          email_sent_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -592,7 +634,9 @@ export type Database = {
     }
     Enums: {
       listing_type: "rent" | "sale"
+      notification_type: "property_published" | "office_approved" | "office_rejected" | "new_inquiry" | "system"
       office_status: "pending" | "approved" | "rejected"
+      property_status: "pending" | "active" | "hidden" | "inactive" | "sold" | "rented"
       user_role: "user" | "pending_office" | "office" | "admin"
     }
     CompositeTypes: {
