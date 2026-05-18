@@ -32,6 +32,7 @@ export const ar = {
     viewAll: 'عرض الكل',
     savedToFavorites: 'أضيف إلى المفضلة',
     removedFromFavorites: 'حذف من المفضلة',
+    skipToContent: 'انتقل إلى المحتوى الرئيسي',
   },
 
   nav: {
@@ -157,6 +158,12 @@ export const ar = {
     linkCopied: 'تم نسخ الرابط',
     shareProperty: 'مشاركة',
 
+    gallery: {
+      prev: 'الصورة السابقة',
+      next: 'الصورة التالية',
+      goToImage: 'الانتقال إلى الصورة {n}',
+      viewImage: 'عرض الصورة {n}',
+    },
     form: {
       title: 'إضافة عقار جديد',
       subtitle: 'املأ التفاصيل لنشر عقارك',
@@ -476,6 +483,37 @@ export const ar = {
     invalidUrl: 'الرابط غير صالح',
     invalidPhone: 'رقم الهاتف غير صالح',
     atLeastOneImage: 'يجب إضافة صورة واحدة على الأقل',
+    invalidEmail: 'البريد الإلكتروني غير صالح',
+    atLeastOne: 'اختر خياراً واحداً على الأقل',
+  },
+
+  register: {
+    sectionAccount: 'بيانات الحساب',
+    sectionOffice: 'بيانات المكتب',
+    sectionDocuments: 'الوثائق الرسمية',
+    documentsHint: 'مطلوبة لمراجعة وقبول الطلب',
+    companyDocLabel: 'السجل التجاري أو وثيقة الشركة الرسمية',
+    idDocLabel: 'وثيقة الهوية الشخصية',
+    submitOffice: 'تسجيل وتقديم طلب المكتب',
+    chooseType: 'اختر نوع الحساب للمتابعة',
+    userTitle: 'مستخدم عادي',
+    userDescription: 'للأفراد الراغبين في البحث عن عقارات وحفظ المفضلة',
+    officeTitle: 'مكتب عقاري',
+    officeDescription: 'للمكاتب الراغبة في نشر عقاراتها وإدارة قوائمها',
+    userFormTitle: 'إنشاء حساب مستخدم',
+    officeFormTitle: 'تسجيل مكتب عقاري',
+    selectCity: 'اختر المدينة',
+    invalidDocType: 'يرجى رفع صورة أو ملف PDF',
+    docTooLarge: 'الحجم الأقصى {max}MB',
+    docHint: 'JPG, PNG, PDF — الحجم الأقصى {max}MB',
+    cityRequired: 'يرجى اختيار المدينة',
+    companyDocRequired: 'يرجى رفع وثيقة الشركة الرسمية',
+    idDocRequired: 'يرجى رفع وثيقة الهوية',
+    officeSuccess: {
+      title: 'تم تقديم الطلب بنجاح',
+      body: 'طلب مكتبك قيد المراجعة. ستتلقى إشعاراً بمجرد الموافقة عليه.',
+      cta: 'الذهاب إلى الصفحة الرئيسية',
+    },
   },
 } as const;
 

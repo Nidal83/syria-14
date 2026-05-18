@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { MAIN_CONTENT_ID } from '@/lib/a11y';
 import {
   LayoutDashboard,
   Building2,
@@ -61,6 +62,12 @@ export function DashboardLayout({ role }: Props) {
 
   return (
     <div className="flex min-h-screen">
+      <a
+        href={`#${MAIN_CONTENT_ID}`}
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-md focus:outline-none"
+      >
+        {t.common.skipToContent}
+      </a>
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-e border-border/60 bg-sidebar lg:flex">
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
@@ -155,7 +162,7 @@ export function DashboardLayout({ role }: Props) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        <main id={MAIN_CONTENT_ID} className="flex-1 overflow-auto p-4 md:p-6">
           <Outlet />
         </main>
       </div>

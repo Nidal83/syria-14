@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ar } from './locales/ar';
 import { en } from './locales/en';
 import type { Translations } from './locales/ar';
+import { installZodErrorMap } from '../zod-i18n';
 
 export type Locale = 'ar' | 'en';
 
@@ -35,7 +36,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     document.body.style.fontFamily = isRTL
       ? 'var(--font-arabic), var(--font-english), sans-serif'
       : 'var(--font-english), var(--font-arabic), sans-serif';
-  }, [locale, t.dir, t.lang, isRTL]);
+    installZodErrorMap(t);
+  }, [locale, t, t.dir, t.lang, isRTL]);
 
   function setLocale(next: Locale) {
     setLocaleState(next);

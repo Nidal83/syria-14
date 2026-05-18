@@ -82,3 +82,36 @@ See README for the role matrix. The implementation invariant:
 - Frontend role checks use the `useRole()` hook (Phase 1).
 - A user can hold multiple roles. The `user_roles` table is N:N, intentionally
   separate from `profiles` to prevent privilege-escalation via profile updates.
+
+## i18n conventions
+
+- All user-visible strings live in `src/lib/i18n/locales/ar.ts` and `en.ts`.
+  The Arabic file defines the canonical `Translations` type; the English file satisfies it.
+- Access translations via `const { t } = useI18n()`. Never inline string literals
+  in JSX or component logic.
+- Template variables use `{placeholder}` syntax and are replaced with
+  `.replace('{placeholder}', value)` at the call site.
+- A global Zod error map (`src/lib/zod-i18n.ts`) is installed in `I18nProvider`
+  via `installZodErrorMap(t)` on every locale change. This means all Zod built-in
+  messages (required, too short, invalid email, etc.) automatically respect the
+  current locale. Zod `.refine()` messages must use `t.` keys and be wired via
+  schema factory functions (not module-level constants) so they re-evaluate on
+  locale change.
+- Locale-aware date, currency, and relative-time formatting is in
+  `src/lib/formatters.ts` (wraps `Intl.DateTimeFormat`, `Intl.NumberFormat`,
+  `Intl.RelativeTimeFormat`).
+
+## Accessibility (a11y) conventions
+
+- Every public layout (`PageLayout`, `DashboardLayout`) begins with a
+  visually-hidden skip link pointing to `#main-content`. The `<main>` element
+  carries `id={MAIN_CONTENT_ID}` (imported from `src/lib/a11y.ts`).
+- All icon-only interactive elements (`<button>`, `<a>`) must carry an
+  `aria-label` drawn from the i18n dictionary. No hardcoded English in
+  `aria-label` attributes.
+- All `<form>` elements carry `noValidate` to suppress browser-native validation
+  bubbles (which are always in the OS language, not the app locale).
+- Every `<Label>` must have `htmlFor` matching its control's `id`. Floating
+  labels or labels wrapping a control are acceptable alternatives.
+- The heading hierarchy must be sequential within a page: one `<h1>` per route,
+  sections use `<h2>`, sub-sections `<h3>`.

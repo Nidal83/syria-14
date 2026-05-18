@@ -34,6 +34,7 @@ export const en: Translations = {
     viewAll: 'View All',
     savedToFavorites: 'Saved to favorites',
     removedFromFavorites: 'Removed from favorites',
+    skipToContent: 'Skip to main content',
   },
 
   nav: {
@@ -159,6 +160,12 @@ export const en: Translations = {
     linkCopied: 'Link copied to clipboard',
     shareProperty: 'Share',
 
+    gallery: {
+      prev: 'Previous image',
+      next: 'Next image',
+      goToImage: 'Go to image {n}',
+      viewImage: 'View image {n}',
+    },
     form: {
       title: 'Add new property',
       subtitle: 'Fill in the details to publish your listing',
@@ -478,5 +485,36 @@ export const en: Translations = {
     invalidUrl: 'Invalid URL',
     invalidPhone: 'Invalid phone number',
     atLeastOneImage: 'At least one image is required',
+    invalidEmail: 'Invalid email address',
+    atLeastOne: 'Select at least one option',
+  },
+
+  register: {
+    sectionAccount: 'Account details',
+    sectionOffice: 'Office details',
+    sectionDocuments: 'Official documents',
+    documentsHint: 'Required for review and approval',
+    companyDocLabel: 'Commercial register or official company document',
+    idDocLabel: 'Personal identity document',
+    submitOffice: 'Register and submit office application',
+    chooseType: 'Choose account type to continue',
+    userTitle: 'Regular user',
+    userDescription: 'For individuals looking to search for properties and save favourites',
+    officeTitle: 'Real estate office',
+    officeDescription: 'For offices wishing to publish their properties and manage listings',
+    userFormTitle: 'Create user account',
+    officeFormTitle: 'Register a real estate office',
+    selectCity: 'Select city',
+    invalidDocType: 'Please upload an image or PDF file',
+    docTooLarge: 'Maximum file size is {max}MB',
+    docHint: 'JPG, PNG, PDF — max {max}MB',
+    cityRequired: 'Please select a city',
+    companyDocRequired: 'Please upload the official company document',
+    idDocRequired: 'Please upload your identity document',
+    officeSuccess: {
+      title: 'Application submitted successfully',
+      body: 'Your office application is under review. You will be notified once it is approved.',
+      cta: 'Go to home page',
+    },
   },
 } as const;

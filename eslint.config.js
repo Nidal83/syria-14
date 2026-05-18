@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
 
@@ -31,9 +32,11 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      'jsx-a11y': jsxA11y,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      ...jsxA11y.configs.recommended.rules,
 
       // Warn instead of error so dev velocity isn't blocked, but CI sees them.
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
@@ -73,6 +76,24 @@ export default tseslint.config(
     files: ['*.config.{js,ts}', 'vite.config.ts', 'vitest.config.ts'],
     languageOptions: {
       globals: { ...globals.node },
+    },
+  },
+
+  // Off-limits directories carry pre-existing a11y issues that are deferred to
+  // a dedicated pass. Suppress only the rules that would otherwise block CI.
+  {
+    files: [
+      'src/pages/admin/**/*.{ts,tsx}',
+      'src/pages/office/**/*.{ts,tsx}',
+      'src/pages/user/**/*.{ts,tsx}',
+      'src/features/**/*.{ts,tsx}',
+      'src/routes/**/*.{ts,tsx}',
+    ],
+    rules: {
+      'jsx-a11y/click-events-have-key-events': 'off',
+      'jsx-a11y/no-static-element-interactions': 'off',
+      'jsx-a11y/aria-role': 'off',
+      'jsx-a11y/no-noninteractive-element-interactions': 'off',
     },
   },
 

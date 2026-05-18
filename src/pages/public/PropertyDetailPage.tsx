@@ -345,12 +345,14 @@ export default function PropertyDetailPage() {
                   <>
                     <button
                       onClick={prevImg}
+                      aria-label={t.property.gallery.prev}
                       className="absolute start-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur hover:bg-black/60"
                     >
                       <PrevIcon className="h-5 w-5" />
                     </button>
                     <button
                       onClick={nextImg}
+                      aria-label={t.property.gallery.next}
                       className="absolute end-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur hover:bg-black/60"
                     >
                       <NextIcon className="h-5 w-5" />
@@ -360,6 +362,7 @@ export default function PropertyDetailPage() {
                         <button
                           key={i}
                           onClick={() => setCurrentImg(i)}
+                          aria-label={t.property.gallery.goToImage.replace('{n}', String(i + 1))}
                           className={cn(
                             'h-1.5 rounded-full transition-all',
                             i === currentImg ? 'w-5 bg-white' : 'w-1.5 bg-white/50',
@@ -376,6 +379,7 @@ export default function PropertyDetailPage() {
                     <button
                       key={i}
                       onClick={() => setCurrentImg(i)}
+                      aria-label={t.property.gallery.viewImage.replace('{n}', String(i + 1))}
                       className={cn(
                         'h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all',
                         i === currentImg ? 'border-primary' : 'border-transparent opacity-60',

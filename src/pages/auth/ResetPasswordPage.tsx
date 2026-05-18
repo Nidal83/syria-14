@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -12,22 +12,27 @@ import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';
 import { Logo } from '@/components/common/Logo';
 
-const schema = z
-  .object({
-    password: z.string().min(8),
-    confirmPassword: z.string(),
-  })
-  .refine((d) => d.password === d.confirmPassword, {
-    message: 'Passwords do not match',
+const baseSchema = z.object({
+  password: z.string().min(8),
+  confirmPassword: z.string(),
+});
+
+function buildSchema(notMatch: string) {
+  return baseSchema.refine((d) => d.password === d.confirmPassword, {
+    message: notMatch,
     path: ['confirmPassword'],
   });
-type FormData = z.infer<typeof schema>;
+}
+
+type FormData = z.infer<typeof baseSchema>;
 
 export default function ResetPasswordPage() {
   const { t } = useI18n();
   const { updatePassword } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
+
+  const schema = useMemo(() => buildSchema(t.auth.passwordsNotMatch), [t.auth.passwordsNotMatch]);
 
   const {
     register,
@@ -58,7 +63,7 @@ export default function ResetPasswordPage() {
             <CardTitle className="text-xl">{t.auth.resetPassword}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <div className="space-y-1.5">
                 <Label htmlFor="password">{t.auth.password}</Label>
                 <Input

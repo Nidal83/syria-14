@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Building2, Upload, X, FileText, CheckCircle2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -54,12 +54,14 @@ const baseFields = z.object({
   confirmPassword: z.string(),
 });
 
-const baseSchema = baseFields.refine((d) => d.password === d.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
+function buildBaseSchema(notMatch: string) {
+  return baseFields.refine((d) => d.password === d.confirmPassword, {
+    message: notMatch,
+    path: ['confirmPassword'],
+  });
+}
 
-type UserFormData = z.infer<typeof baseSchema>;
+type UserFormData = z.infer<typeof baseFields>;
 
 const officeFields = baseFields.extend({
   officeName: z.string().min(2),
@@ -67,12 +69,14 @@ const officeFields = baseFields.extend({
   officeDescription: z.string().optional(),
 });
 
-const officeSchema = officeFields.refine((d) => d.password === d.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
+function buildOfficeSchema(notMatch: string) {
+  return officeFields.refine((d) => d.password === d.confirmPassword, {
+    message: notMatch,
+    path: ['confirmPassword'],
+  });
+}
 
-type OfficeFormData = z.infer<typeof officeSchema>;
+type OfficeFormData = z.infer<typeof officeFields>;
 
 // ─── Slug helper ──────────────────────────────────────────────────────────────
 
@@ -106,11 +110,11 @@ function DocUploadArea({
     const f = e.target.files?.[0];
     if (!f) return;
     if (!ACCEPTED_DOC.includes(f.type)) {
-      toast.error('يرجى رفع صورة أو ملف PDF');
+      toast.error(t.register.invalidDocType);
       return;
     }
     if (f.size > MAX_MB * 1024 * 1024) {
-      toast.error(`الحجم الأقصى ${MAX_MB}MB`);
+      toast.error(t.register.docTooLarge.replace('{max}', String(MAX_MB)));
       return;
     }
     onFile(f);
@@ -146,6 +150,7 @@ function DocUploadArea({
           <button
             type="button"
             onClick={() => onFile(null)}
+            aria-label={t.common.delete}
             className="rounded-md p-1 text-muted-foreground hover:text-destructive"
           >
             <X className="h-4 w-4" />
@@ -162,7 +167,9 @@ function DocUploadArea({
           </div>
           <div>
             <p className="text-sm font-medium text-foreground/80">{label}</p>
-            <p className="text-xs text-muted-foreground">JPG, PNG, PDF — max {MAX_MB}MB</p>
+            <p className="text-xs text-muted-foreground">
+              {t.register.docHint.replace('{max}', String(MAX_MB))}
+            </p>
           </div>
           <input
             ref={inputRef}
@@ -190,6 +197,7 @@ function PasswordField({
   registration: React.InputHTMLAttributes<HTMLInputElement>;
   error?: string;
 }) {
+  const { t } = useI18n();
   const [show, setShow] = useState(false);
   return (
     <div className="space-y-1.5">
@@ -199,6 +207,7 @@ function PasswordField({
         <button
           type="button"
           onClick={() => setShow((v) => !v)}
+          aria-label={show ? t.auth.hidePassword : t.auth.showPassword}
           className="absolute inset-y-0 end-0 flex items-center pe-3 text-muted-foreground hover:text-foreground"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -266,12 +275,17 @@ function UserRegisterForm() {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState('');
 
+  const schema = useMemo(
+    () => buildBaseSchema(t.auth.passwordsNotMatch),
+    [t.auth.passwordsNotMatch],
+  );
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<UserFormData>({
-    resolver: zodResolver(baseSchema),
+    resolver: zodResolver(schema),
   });
 
   async function onSubmit(data: UserFormData) {
@@ -358,28 +372,33 @@ function OfficeRegisterForm() {
   const [submitError, setSubmitError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const schema = useMemo(
+    () => buildOfficeSchema(t.auth.passwordsNotMatch),
+    [t.auth.passwordsNotMatch],
+  );
+
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
   } = useForm<OfficeFormData>({
-    resolver: zodResolver(officeSchema),
+    resolver: zodResolver(schema),
   });
 
   const officeName = watch('officeName') ?? '';
 
   async function onSubmit(data: OfficeFormData) {
     if (!city) {
-      setSubmitError('يرجى اختيار المدينة');
+      setSubmitError(t.register.cityRequired);
       return;
     }
     if (!docFile) {
-      setSubmitError('يرجى رفع وثيقة الشركة الرسمية');
+      setSubmitError(t.register.companyDocRequired);
       return;
     }
     if (!idFile) {
-      setSubmitError('يرجى رفع وثيقة الهوية');
+      setSubmitError(t.register.idDocRequired);
       return;
     }
 
@@ -453,13 +472,13 @@ function OfficeRegisterForm() {
           <CheckCircle2 className="h-9 w-9 text-green-600" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground">تم إرسال طلبك بنجاح!</h3>
+          <h3 className="text-lg font-bold text-foreground">{t.register.officeSuccess.title}</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            سيتم مراجعة طلبك من قبل فريق سيريا 14 وسيتم إشعارك عند الموافقة.
+            {t.register.officeSuccess.body}
           </p>
         </div>
         <Button className="w-full" onClick={() => navigate(PATHS.login)}>
-          تسجيل الدخول
+          {t.register.officeSuccess.cta}
         </Button>
       </div>
     );
@@ -470,7 +489,7 @@ function OfficeRegisterForm() {
       {/* ── Account info ── */}
       <div className="space-y-4 rounded-xl border border-border/50 bg-muted/20 p-4">
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          بيانات الحساب
+          {t.register.sectionAccount}
         </p>
 
         <div className="space-y-1.5">
@@ -521,7 +540,7 @@ function OfficeRegisterForm() {
       {/* ── Office info ── */}
       <div className="space-y-4 rounded-xl border border-border/50 bg-muted/20 p-4">
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          بيانات المكتب
+          {t.register.sectionOffice}
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -539,12 +558,12 @@ function OfficeRegisterForm() {
             )}
           </div>
           <div className="space-y-1.5">
-            <Label>
+            <Label htmlFor="o-city">
               {t.office.city} <span className="text-destructive">*</span>
             </Label>
             <Select value={city} onValueChange={setCity}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر المدينة" />
+              <SelectTrigger id="o-city">
+                <SelectValue placeholder={t.register.selectCity} />
               </SelectTrigger>
               <SelectContent>
                 {SYRIAN_CITIES.map((c) => (
@@ -567,18 +586,18 @@ function OfficeRegisterForm() {
       <div className="space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-primary">
-            الوثائق الرسمية
+            {t.register.sectionDocuments}
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">مطلوبة لمراجعة وقبول الطلب</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t.register.documentsHint}</p>
         </div>
 
         <DocUploadArea
-          label="السجل التجاري أو وثيقة الشركة الرسمية"
+          label={t.register.companyDocLabel}
           file={docFile}
           onFile={setDocFile}
           required
         />
-        <DocUploadArea label="وثيقة الهوية الشخصية" file={idFile} onFile={setIdFile} required />
+        <DocUploadArea label={t.register.idDocLabel} file={idFile} onFile={setIdFile} required />
       </div>
 
       {submitError && (
@@ -589,7 +608,7 @@ function OfficeRegisterForm() {
 
       <Button type="submit" className="w-full gap-2" disabled={isSubmitting}>
         <Building2 className="h-4 w-4" />
-        {isSubmitting ? t.common.loading : 'تسجيل وتقديم طلب المكتب'}
+        {isSubmitting ? t.common.loading : t.register.submitOffice}
       </Button>
     </form>
   );
@@ -612,22 +631,22 @@ export default function RegisterPage() {
         {/* Type selection */}
         <div>
           <h1 className="mb-1 text-center text-xl font-bold text-foreground">{t.auth.register}</h1>
-          <p className="mb-4 text-center text-sm text-muted-foreground">اختر نوع الحساب للمتابعة</p>
+          <p className="mb-4 text-center text-sm text-muted-foreground">{t.register.chooseType}</p>
 
           <div className="flex gap-3">
             <TypeCard
               selected={accountType === 'user'}
               onClick={() => setAccountType('user')}
               icon={User}
-              title="مستخدم عادي"
-              description="للأفراد الراغبين في البحث عن عقارات وحفظ المفضلة"
+              title={t.register.userTitle}
+              description={t.register.userDescription}
             />
             <TypeCard
               selected={accountType === 'office'}
               onClick={() => setAccountType('office')}
               icon={Building2}
-              title="مكتب عقاري"
-              description="للمكاتب الراغبة في نشر عقاراتها وإدارة قوائمها"
+              title={t.register.officeTitle}
+              description={t.register.officeDescription}
             />
           </div>
         </div>
@@ -644,7 +663,7 @@ export default function RegisterPage() {
                 )}
               </div>
               <h2 className="text-base font-bold">
-                {accountType === 'user' ? 'إنشاء حساب مستخدم' : 'تسجيل مكتب عقاري'}
+                {accountType === 'user' ? t.register.userFormTitle : t.register.officeFormTitle}
               </h2>
             </div>
 
