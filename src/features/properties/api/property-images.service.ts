@@ -83,3 +83,10 @@ export async function insertPropertyImage(row: {
   const { error } = await supabase.from('property_images').insert(row);
   if (error) throw new Error(error.message);
 }
+
+// ─── Delete a property_images row ────────────────────────────────────────────
+
+export async function deletePropertyImage(imageId: string): Promise<void> {
+  const { error } = await supabase.from('property_images').delete().eq('id', imageId);
+  if (error) throw new Error(error.message);
+}

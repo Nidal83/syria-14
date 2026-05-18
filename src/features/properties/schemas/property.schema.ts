@@ -176,3 +176,16 @@ export function createPropertySchema(v: ValidationMessages) {
 }
 
 export type CreatePropertyValues = z.infer<ReturnType<typeof createPropertySchema>>;
+
+export function editPropertySchema(v: ValidationMessages) {
+  return createPropertySchema(v)
+    .omit({ images: true })
+    .extend({
+      images: z
+        .array(z.custom<File>((val) => val instanceof File))
+        .max(15)
+        .default([]),
+    });
+}
+
+export type EditPropertyValues = z.infer<ReturnType<typeof editPropertySchema>>;

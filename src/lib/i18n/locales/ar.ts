@@ -160,6 +160,8 @@ export const ar = {
     form: {
       title: 'إضافة عقار جديد',
       subtitle: 'املأ التفاصيل لنشر عقارك',
+      editTitle: 'تعديل العقار',
+      editSubtitle: 'حدّث تفاصيل إعلانك',
     },
     section: {
       basic: 'المعلومات الأساسية',
@@ -228,6 +230,8 @@ export const ar = {
       publish: 'نشر الإعلان',
       cancel: 'إلغاء',
       publishing: 'جارٍ النشر...',
+      save: 'حفظ التغييرات',
+      saving: 'جارٍ الحفظ...',
       hide: 'إخفاء',
       show: 'إظهار',
       viewPublic: 'عرض الصفحة',
@@ -236,12 +240,16 @@ export const ar = {
     },
     success: {
       created: 'تم نشر العقار بنجاح',
+      updated: 'تم تحديث العقار بنجاح',
     },
     error: {
       createFailed: 'تعذّر نشر العقار',
+      updateFailed: 'تعذّر تحديث العقار',
+      notFound: 'العقار غير موجود',
     },
     warning: {
       partialImages: 'تم إنشاء العقار، لكن فشل تحميل بعض الصور',
+      partialImagesUpdate: 'تم تحديث العقار، لكن فشل تحميل بعض الصور الجديدة',
     },
     directions: {
       north: 'شمال',

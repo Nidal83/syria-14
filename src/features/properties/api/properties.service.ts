@@ -173,3 +173,104 @@ export async function updatePropertyStatus(
   const { error } = await supabase.from('properties').update({ status }).eq('id', propertyId);
   if (error) throw new Error(error.message);
 }
+
+// ─── Fetch full property for editing ─────────────────────────────────────────
+
+export interface ExistingImage {
+  id: string;
+  image_url: string;
+  is_cover: boolean;
+}
+
+export interface PropertyForEdit {
+  id: string;
+  title: string;
+  description: string | null;
+  property_type: string;
+  listing_type: 'sale' | 'rent';
+  price: number;
+  currency: string;
+  governorate_id: string | null;
+  area_id: string | null;
+  address: string | null;
+  area_size: number | null;
+  rooms: number | null;
+  bathrooms: number | null;
+  living_rooms: number | null;
+  kitchens: number | null;
+  floor: number | null;
+  total_floors: number | null;
+  building_age: number | null;
+  direction: string | null;
+  view: string | null;
+  features: string[] | null;
+  furnished: boolean;
+  payment_method: string | null;
+  ownership_type: string | null;
+  contact_phone: string | null;
+  whatsapp: string | null;
+  video_url: string | null;
+  office_id: string;
+  property_images: ExistingImage[];
+}
+
+export async function fetchPropertyForEdit(propertyId: string): Promise<PropertyForEdit> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select(
+      `id, title, description, property_type, listing_type, price, currency,
+       governorate_id, area_id, address, area_size, rooms, bathrooms,
+       living_rooms, kitchens, floor, total_floors, building_age,
+       direction, view, features, furnished, payment_method, ownership_type,
+       contact_phone, whatsapp, video_url, office_id,
+       property_images(id, image_url, is_cover)`,
+    )
+    .eq('id', propertyId)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as unknown as PropertyForEdit;
+}
+
+// ─── Update property fields ───────────────────────────────────────────────────
+
+type PropertyUpdate = Omit<PropertyForEdit, 'id' | 'property_images'>;
+
+export async function updatePropertyFields(
+  propertyId: string,
+  payload: PropertyUpdate,
+): Promise<void> {
+  const { error } = await supabase
+    .from('properties')
+    .update({
+      title: payload.title,
+      description: payload.description,
+      property_type: payload.property_type,
+      listing_type: payload.listing_type,
+      price: payload.price,
+      currency: payload.currency,
+      governorate_id: payload.governorate_id,
+      area_id: payload.area_id,
+      address: payload.address,
+      area_size: payload.area_size,
+      rooms: payload.rooms,
+      bathrooms: payload.bathrooms,
+      living_rooms: payload.living_rooms ?? 0,
+      kitchens: payload.kitchens ?? 1,
+      floor: payload.floor,
+      total_floors: payload.total_floors,
+      building_age: payload.building_age,
+      direction: payload.direction ?? '',
+      view: payload.view ?? '',
+      features: payload.features ?? [],
+      furnished: payload.furnished,
+      payment_method: payload.payment_method ?? '',
+      ownership_type: payload.ownership_type ?? '',
+      contact_phone: payload.contact_phone,
+      whatsapp: payload.whatsapp ?? '',
+      video_url: payload.video_url ?? '',
+    })
+    .eq('id', propertyId);
+
+  if (error) throw new Error(error.message);
+}

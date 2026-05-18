@@ -162,6 +162,8 @@ export const en: Translations = {
     form: {
       title: 'Add new property',
       subtitle: 'Fill in the details to publish your listing',
+      editTitle: 'Edit property',
+      editSubtitle: 'Update your listing details',
     },
     section: {
       basic: 'Basic information',
@@ -230,6 +232,8 @@ export const en: Translations = {
       publish: 'Publish listing',
       cancel: 'Cancel',
       publishing: 'Publishing...',
+      save: 'Save changes',
+      saving: 'Saving...',
       hide: 'Hide',
       show: 'Show',
       viewPublic: 'View page',
@@ -238,12 +242,16 @@ export const en: Translations = {
     },
     success: {
       created: 'Property published successfully',
+      updated: 'Property updated successfully',
     },
     error: {
       createFailed: 'Could not publish property',
+      updateFailed: 'Could not update property',
+      notFound: 'Property not found',
     },
     warning: {
       partialImages: 'Property created, but some images failed to upload',
+      partialImagesUpdate: 'Property updated, but some new images failed to upload',
     },
     directions: {
       north: 'North',
