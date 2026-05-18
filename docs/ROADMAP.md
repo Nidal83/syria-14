@@ -122,6 +122,7 @@ Foundation hygiene. Zero behavior changes.
 ## Stage 2 — Infrastructure
 
 - [x] Prompt 1: CI/CD + Sentry — automated verification and error tracking
+- [x] Prompt 2: Email infrastructure (Resend SMTP + branded bilingual auth templates + shared Edge Function email layout)
 
 ### Branch protection
 

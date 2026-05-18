@@ -11,7 +11,10 @@
 //   2. Set the Resend API key secret:
 //        supabase secrets set RESEND_API_KEY=re_xxxxx
 //
-//   3. Create the Database Webhook:
+//   3. Set the app URL secret:
+//        supabase secrets set APP_URL=https://syria14.com
+//
+//   4. Create the Database Webhook:
 //        Supabase Dashboard → Database → Webhooks → Create webhook
 //          Name:    notification_email_dispatch
 //          Table:   public.notifications
@@ -20,25 +23,58 @@
 //          URL:     <Edge Function URL from Dashboard → Edge Functions>
 //          Headers: Authorization: Bearer <service-role JWT>
 //
-//   4. Verify your sender domain at https://resend.com (DKIM, SPF, return-path).
+//   5. Verify your sender domain at https://resend.com (DKIM, SPF, return-path).
 //      Until the domain is verified, Resend only accepts @resend.dev sender addresses.
 //
-//   5. Set the SITE_URL secret if not already set:
-//        supabase secrets set SITE_URL=https://syria14.com
-//
-//   See docs/SUPABASE_SETUP.md → "Notifications email setup" for full instructions.
+//   See docs/SUPABASE_SETUP.md § 3 for full instructions.
 // =============================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { renderEmail, sendViaResend } from '../_shared/email-template.ts';
+import type { EmailContent } from '../_shared/email-template.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://syria14.com';
+const APP_URL = Deno.env.get('APP_URL') ?? 'https://syria14.com';
 const FROM_ADDRESS = 'Syria14 <noreply@syria14.com>';
 
+function buildEmailContent(type: string, title: string, viewUrl: string): EmailContent {
+  const ctaLabel = { ar: 'عرض الإشعار', en: 'View notification' };
+
+  if (type === 'new_inquiry') {
+    return {
+      subject: title,
+      title: { ar: 'استفسار جديد', en: 'New inquiry' },
+      body: {
+        ar: 'وصل إليك استفسار جديد على إحدى عقاراتك. اضغط الزر أدناه لعرض التفاصيل.',
+        en: 'A new inquiry has been received for one of your properties. Click the button below to view the details.',
+      },
+      cta: { url: viewUrl, label: ctaLabel },
+      footer: {
+        ar: 'إذا كنت لا تريد تلقّي هذه الإشعارات، عدّل تفضيلاتك من إعدادات الحساب.',
+        en: 'To stop receiving these emails, update your notification preferences in account settings.',
+      },
+    };
+  }
+
+  // Generic fallback — covers 'system' and any future types
+  return {
+    subject: title,
+    title: { ar: 'إشعار من سيريك 14', en: 'Syria14 notification' },
+    body: {
+      ar: title,
+      en: title,
+    },
+    cta: { url: viewUrl, label: ctaLabel },
+    footer: {
+      ar: 'إذا كنت لا تريد تلقّي هذه الإشعارات، عدّل تفضيلاتك من إعدادات الحساب.',
+      en: 'To stop receiving these emails, update your notification preferences in account settings.',
+    },
+  };
+}
+
 Deno.serve(async (req: Request) => {
-  // Only accept POST
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
@@ -92,7 +128,6 @@ Deno.serve(async (req: Request) => {
 
   const prefs = (profileData?.notification_prefs as Record<string, boolean> | null) ?? {};
 
-  // Map notification type to preference key
   const prefKeyMap: Record<string, string> = {
     new_inquiry: 'inquiries',
     system: 'system',
@@ -103,43 +138,25 @@ Deno.serve(async (req: Request) => {
     return new Response('OK', { status: 200 });
   }
 
-  // 3. Build email
-  const viewUrl = notification.link ? `${SITE_URL}${notification.link}` : SITE_URL;
-  const htmlBody = `
-    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
-      <h2 style="margin:0 0 8px">${notification.title}</h2>
-      ${notification.body ? `<p style="color:#555;margin:0 0 16px">${notification.body}</p>` : ''}
-      <a href="${viewUrl}"
-         style="display:inline-block;background:#0070f3;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">
-        View
-      </a>
-      <hr style="margin:24px 0;border:none;border-top:1px solid #eee"/>
-      <p style="color:#999;font-size:12px">Syria14 — Real Estate Platform</p>
-    </div>
-  `;
+  // 3. Build and send the branded email
+  const viewUrl = notification.link ? `${APP_URL}${notification.link}` : APP_URL;
+  const content = buildEmailContent(notification.type, notification.title, viewUrl);
+  const html = renderEmail(content);
 
-  // 4. Send via Resend
-  const resendRes = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+  try {
+    await sendViaResend({
+      apiKey: RESEND_API_KEY,
       from: FROM_ADDRESS,
-      to: [toEmail],
-      subject: notification.title,
-      html: htmlBody,
-    }),
-  });
-
-  if (!resendRes.ok) {
-    const err = await resendRes.text();
-    console.error('[send-notification-email] Resend error', resendRes.status, err);
+      to: toEmail,
+      subject: content.subject,
+      html,
+    });
+  } catch (err) {
+    console.error('[send-notification-email] Resend error', err);
     return new Response('Email send failed', { status: 500 });
   }
 
-  // 5. Mark email_sent_at on the notification row
+  // 4. Mark email_sent_at on the notification row
   await admin
     .from('notifications')
     .update({ email_sent_at: new Date().toISOString() })

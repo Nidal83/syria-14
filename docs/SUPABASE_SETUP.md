@@ -58,31 +58,103 @@ before they can sign in. Our app handles this:
 
 ---
 
-## 3. Custom SMTP (strongly recommended before launch)
-
-**Where:** Auth → Emails → SMTP Settings
+## 3. Email infrastructure (Resend)
 
 Supabase's default email infrastructure is rate-limited (≈30 emails/hour on
 the free tier) and uses `noreply@mail.app.supabase.io` as the sender — neither
-is acceptable for a production-facing real-estate platform.
+is acceptable for a production real-estate platform. We replace it with Resend.
 
-Recommended providers (all have free tiers):
+### 3.1 Create a Resend account
 
-| Provider | Free tier                                   | Setup difficulty |
-| -------- | ------------------------------------------- | ---------------- |
-| Resend   | 3,000/month                                 | Easy (5 min)     |
-| SendGrid | 100/day                                     | Medium           |
-| AWS SES  | First 62,000/month free if sending from EC2 | Hard             |
+Sign up at <https://resend.com>. The free tier includes 3,000 emails/month and
+100/day — sufficient for most pre-launch workloads.
 
-After SMTP is configured, customize the email templates under Auth → Emails
-→ Templates:
+### 3.2 Verify your domain
 
-- **Confirm signup**
-- **Reset password**
-- **Magic Link**
-- **Change email address**
+In the Resend dashboard → Domains → Add domain:
 
-Translate to Arabic + English, replace the sender name with "Syria14".
+1. Enter `syria14.com`.
+2. Resend generates three DNS records (SPF, DKIM, DMARC). Add them to your
+   DNS provider (Cloudflare, Route 53, etc.).
+3. Click **Verify** — all three records must pass before you can send from
+   a `@syria14.com` address.
+4. Until verification passes, Resend only accepts `@resend.dev` sender
+   addresses (useful for development).
+
+### 3.3 Create an API key
+
+Resend dashboard → API Keys → Create API key:
+
+- Name: `supabase-smtp` (or `syria14-production`)
+- Permission: **Sending access** (not full access)
+- Domain: restrict to `syria14.com`
+- Copy the key — you'll need it in steps 3.4 and 3.6.
+
+### 3.4 Configure Supabase SMTP
+
+**Where:** Supabase Dashboard → Auth → Emails → SMTP Settings → Enable custom SMTP
+
+| Field        | Value                   |
+| ------------ | ----------------------- |
+| Host         | `smtp.resend.com`       |
+| Port         | `465`                   |
+| Username     | `resend`                |
+| Password     | _(your Resend API key)_ |
+| Sender name  | `Syria14`               |
+| Sender email | `noreply@syria14.com`   |
+
+Save settings. Supabase now routes all auth emails through Resend.
+
+### 3.5 Paste the branded auth templates
+
+**Where:** Supabase Dashboard → Auth → Emails → Templates
+
+For each of the six template types, copy the corresponding HTML file from
+`docs/email-templates/` in this repository and paste it into the template
+editor. Use the subject line from the comment at the top of each file.
+
+| Template             | File                                         | Subject (EN)                   |
+| -------------------- | -------------------------------------------- | ------------------------------ |
+| Confirm signup       | `docs/email-templates/confirm-signup.html`   | Confirm your email — Syria14   |
+| Reset password       | `docs/email-templates/reset-password.html`   | Reset your Syria14 password    |
+| Magic link           | `docs/email-templates/magic-link.html`       | Your Syria14 sign-in link      |
+| Change email address | `docs/email-templates/change-email.html`     | Confirm your new email         |
+| Invite user          | `docs/email-templates/invite.html`           | You've been invited to Syria14 |
+| Reauthentication OTP | `docs/email-templates/reauthentication.html` | Confirm your identity          |
+
+Each template is bilingual (Arabic RTL + English LTR), styled with the Syria 14
+gold brand color (`#c89b3c`), and uses Supabase's Go template variables
+(`{{ .ConfirmationURL }}`, `{{ .Token }}`, `{{ .Email }}`).
+
+### 3.6 Set the RESEND_API_KEY secret for Edge Functions
+
+The `send-notification-email` Edge Function also uses Resend for transactional
+notifications. Set the secret so it can call the API:
+
+```bash
+supabase secrets set RESEND_API_KEY=re_xxxxx
+```
+
+Until this secret is set the function exits cleanly with `200 OK` — the
+in-app notification system keeps working with no side effects.
+
+### 3.7 Set the APP_URL secret
+
+The Edge Function constructs deep-links using the site URL:
+
+```bash
+supabase secrets set APP_URL=https://syria14.com
+```
+
+For local development you can point this at `http://localhost:8080`.
+
+### 3.8 Verify end-to-end
+
+1. Register a new test user → the confirmation email should arrive within
+   a few seconds, from `noreply@syria14.com`, with the bilingual Syria 14
+   template.
+2. In the Resend dashboard → Logs, confirm delivery status is `delivered`.
+3. Test each flow: confirm signup → reset password → magic link.
 
 ---
 
