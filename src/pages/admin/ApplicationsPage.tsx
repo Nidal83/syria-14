@@ -11,6 +11,7 @@ import {
   FileText,
   ImageIcon,
   Loader2,
+  Download,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
@@ -89,48 +90,62 @@ function extractStoragePath(url: string): { bucket: string; path: string } | nul
 }
 
 function DocLink({ url, label }: { url: string | null; label: string }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<'view' | 'download' | null>(null);
 
   if (!url) return <span className="text-xs text-muted-foreground">—</span>;
 
   const isPdf = url.toLowerCase().includes('.pdf');
 
-  async function handleClick(e: React.MouseEvent) {
-    e.preventDefault();
+  async function openSigned(mode: 'view' | 'download') {
     const parsed = extractStoragePath(url!);
     if (!parsed) {
       window.open(url!, '_blank', 'noopener,noreferrer');
       return;
     }
-    setLoading(true);
+    setLoading(mode);
     try {
+      const opts = mode === 'download' ? { download: true as const } : {};
       const { data, error } = await supabase.storage
         .from(parsed.bucket)
-        .createSignedUrl(parsed.path, 3600);
+        .createSignedUrl(parsed.path, 3600, opts);
       if (error || !data?.signedUrl) {
         window.open(url!, '_blank', 'noopener,noreferrer');
         return;
       }
       window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   }
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={loading}
-      className="inline-flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-60"
-    >
-      {isPdf ? <FileText className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
-      {label}
-      {loading ? (
-        <Loader2 className="h-3 w-3 animate-spin" />
-      ) : (
-        <ExternalLink className="h-3 w-3" />
-      )}
-    </button>
+    <div className="inline-flex items-center gap-2">
+      <button
+        onClick={() => openSigned('view')}
+        disabled={loading !== null}
+        className="inline-flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-60"
+      >
+        {isPdf ? <FileText className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
+        {label}
+        {loading === 'view' ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <ExternalLink className="h-3 w-3" />
+        )}
+      </button>
+      <button
+        onClick={() => openSigned('download')}
+        disabled={loading !== null}
+        title="Download"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary disabled:opacity-60"
+      >
+        {loading === 'download' ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Download className="h-3 w-3" />
+        )}
+      </button>
+    </div>
   );
 }
 
