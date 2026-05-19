@@ -10,6 +10,7 @@ import {
   ExternalLink,
   FileText,
   ImageIcon,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
@@ -79,20 +80,57 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Document link ────────────────────────────────────────────────────────────
 
+// office-documents and office-ids are private buckets — must use signed URLs.
+// Extract bucket + path from the stored public-style URL then call createSignedUrl.
+function extractStoragePath(url: string): { bucket: string; path: string } | null {
+  const m = url.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)/);
+  if (!m) return null;
+  return { bucket: m[1], path: m[2] };
+}
+
 function DocLink({ url, label }: { url: string | null; label: string }) {
+  const [loading, setLoading] = useState(false);
+
   if (!url) return <span className="text-xs text-muted-foreground">—</span>;
+
   const isPdf = url.toLowerCase().includes('.pdf');
+
+  async function handleClick(e: React.MouseEvent) {
+    e.preventDefault();
+    const parsed = extractStoragePath(url!);
+    if (!parsed) {
+      window.open(url!, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from(parsed.bucket)
+        .createSignedUrl(parsed.path, 3600);
+      if (error || !data?.signedUrl) {
+        window.open(url!, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className="inline-flex items-center gap-1 text-xs text-primary hover:underline disabled:opacity-60"
     >
       {isPdf ? <FileText className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
       {label}
-      <ExternalLink className="h-3 w-3" />
-    </a>
+      {loading ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <ExternalLink className="h-3 w-3" />
+      )}
+    </button>
   );
 }
 
