@@ -45,10 +45,17 @@ export function LocationSection() {
       setAreas([]);
       return;
     }
+    const currentAreaId = form.getValues('area_id');
     setLoadingAreas(true);
-    form.setValue('area_id', '');
     fetchAreasByGovernorate(selectedGovId)
-      .then(setAreas)
+      .then((fetchedAreas) => {
+        setAreas(fetchedAreas);
+        // Clear area_id only when the current value doesn't belong to this governorate
+        // (user switched governorate). Preserve it when loading existing edit data.
+        if (currentAreaId && !fetchedAreas.some((a) => a.id === currentAreaId)) {
+          form.setValue('area_id', '');
+        }
+      })
       .finally(() => setLoadingAreas(false));
   }, [selectedGovId, form]);
 
