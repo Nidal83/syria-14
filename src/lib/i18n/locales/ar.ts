@@ -515,6 +515,32 @@ export const ar = {
       cta: 'الذهاب إلى الصفحة الرئيسية',
     },
   },
+
+  contact: {
+    subtitle: 'يسعدنا سماعك والرد على استفساراتك',
+    form: {
+      name: 'الاسم الكامل',
+      contact: 'البريد الإلكتروني أو رقم الهاتف',
+      message: 'رسالتك',
+      messagePlaceholder: 'اكتب رسالتك هنا...',
+      send: 'إرسال الرسالة',
+      sending: 'جاري الإرسال...',
+      successTitle: 'تم إرسال رسالتك بنجاح',
+      successBody: 'سنتواصل معك في أقرب وقت ممكن.',
+      sendAnother: 'إرسال رسالة أخرى',
+    },
+    info: {
+      heading: 'معلومات التواصل',
+      phone: '+963 11 000 0000',
+      email: 'info@syria14.com',
+      address: 'دمشق، سوريا',
+      hours: 'الأحد – الخميس، 9 ص – 5 م',
+      phoneLabel: 'الهاتف',
+      emailLabel: 'البريد الإلكتروني',
+      addressLabel: 'العنوان',
+      hoursLabel: 'ساعات العمل',
+    },
+  },
 } as const;
 
 // Widen all string literals to `string` so other locales can satisfy this type

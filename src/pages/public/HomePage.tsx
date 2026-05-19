@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import SearchBox from '@/components/SearchBox';
 import PropertySection from '@/components/PropertySection';
 import PropertyCard from '@/components/PropertyCard';
 import { useI18n } from '@/lib/i18n/context';
 import { supabase } from '@/integrations/supabase/client';
 import { PATHS } from '@/routes/paths';
-import { sampleProperties, governorates } from '@/data/properties';
 import type { Property } from '@/types/property.types';
 
 async function fetchLatestProperties(): Promise<Property[]> {
@@ -38,46 +38,44 @@ async function fetchLatestProperties(): Promise<Property[]> {
   );
 }
 
-export default function HomePage() {
-  const { t, locale } = useI18n();
+function useFeaturedProperties() {
+  return useQuery({
+    queryKey: ['featured-properties'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select(
+          'id, title, slug, category, listing_type, price, currency, city, district, area_size, rooms, bathrooms, featured_image, status, created_at',
+        )
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return (data ?? []).map(
+        (p) =>
+          ({
+            ...p,
+            bedrooms: p.rooms,
+            description: '',
+            amenities: [],
+            address: null,
+            latitude: null,
+            longitude: null,
+            rejection_reason: null,
+            whatsapp: null,
+            meta_title: null,
+            meta_description: null,
+            updated_at: p.created_at,
+            office_id: '',
+          }) as unknown as Property,
+      );
+    },
+  });
+}
 
-  // TODO(Phase 3): when real data is wired in from Supabase, this section
-  // becomes "Most viewed properties" with 4 cards instead of 3. A second
-  // section "Most viewed offices" should then appear below it, using the
-  // same PropertyCard-style layout adapted for offices. See docs/ROADMAP.md.
-  const featuredProperties: Property[] = sampleProperties.slice(0, 3).map(
-    (p) =>
-      ({
-        id: p.id,
-        slug: p.id,
-        title: p.title[locale as 'ar' | 'en'] ?? p.title.en,
-        description: p.description[locale as 'ar' | 'en'] ?? p.description.en,
-        listing_type: p.listingType,
-        category: 'residential',
-        price: p.price,
-        currency: 'SYP',
-        city:
-          governorates.find((g) => g.key === p.governorate)?.[locale as 'ar' | 'en'] ??
-          p.governorate,
-        district: null,
-        address: null,
-        area_size: p.areaSize,
-        bedrooms: p.rooms,
-        bathrooms: p.bathrooms,
-        amenities: [],
-        featured_image: p.images[p.coverIndex] ?? null,
-        status: 'active',
-        rejection_reason: null,
-        whatsapp: null,
-        meta_title: null,
-        meta_description: null,
-        latitude: null,
-        longitude: null,
-        created_at: p.createdAt,
-        updated_at: p.createdAt,
-        office_id: p.officeId,
-      }) as unknown as Property,
-  );
+export default function HomePage() {
+  const { t } = useI18n();
+  const { data: featuredProperties = [] } = useFeaturedProperties();
 
   return (
     <div className="flex flex-col">

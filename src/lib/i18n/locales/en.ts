@@ -517,4 +517,30 @@ export const en: Translations = {
       cta: 'Go to home page',
     },
   },
+
+  contact: {
+    subtitle: 'We are happy to hear from you and answer your inquiries',
+    form: {
+      name: 'Full name',
+      contact: 'Email or phone number',
+      message: 'Your message',
+      messagePlaceholder: 'Write your message here...',
+      send: 'Send message',
+      sending: 'Sending...',
+      successTitle: 'Message sent successfully',
+      successBody: 'We will get back to you as soon as possible.',
+      sendAnother: 'Send another message',
+    },
+    info: {
+      heading: 'Contact information',
+      phone: '+963 11 000 0000',
+      email: 'info@syria14.com',
+      address: 'Damascus, Syria',
+      hours: 'Sunday – Thursday, 9 AM – 5 PM',
+      phoneLabel: 'Phone',
+      emailLabel: 'Email',
+      addressLabel: 'Address',
+      hoursLabel: 'Working hours',
+    },
+  },
 } as const;
