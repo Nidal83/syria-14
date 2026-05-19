@@ -317,6 +317,8 @@ export const en: Translations = {
     dashboard: 'Office Dashboard',
     myProperties: 'My Properties',
     noOffice: 'No offices found',
+    propertiesBy: 'Properties by',
+    noOfficeProperties: 'This office has no active listings yet.',
     profile: {
       title: 'Office Profile',
       subtitle: 'Your business details and stats',

@@ -109,7 +109,7 @@ function DocLink({ url, label }: { url: string | null; label: string }) {
         .from(parsed.bucket)
         .createSignedUrl(parsed.path, 3600, opts);
       if (error || !data?.signedUrl) {
-        window.open(url!, '_blank', 'noopener,noreferrer');
+        toast.error(error?.message ?? 'Could not open document');
         return;
       }
       window.open(data.signedUrl, '_blank', 'noopener,noreferrer');

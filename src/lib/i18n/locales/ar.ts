@@ -315,6 +315,8 @@ export const ar = {
     dashboard: 'لوحة تحكم المكتب',
     myProperties: 'عقاراتي',
     noOffice: 'لا توجد مكاتب',
+    propertiesBy: 'عقارات مكتب',
+    noOfficeProperties: 'لا توجد عقارات نشطة لهذا المكتب حتى الآن.',
     profile: {
       title: 'ملف المكتب',
       subtitle: 'بيانات مكتبك وإحصائياتك',
