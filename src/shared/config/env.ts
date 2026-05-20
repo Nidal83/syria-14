@@ -17,7 +17,7 @@ const envSchema = z.object({
     .string()
     .min(20, 'VITE_SUPABASE_PUBLISHABLE_KEY looks too short to be a real anon key'),
   VITE_SUPABASE_PROJECT_ID: z.string().optional(),
-  VITE_APP_NAME: z.string().default('Syria Homes Nest'),
+  VITE_APP_NAME: z.string().default('Syria 14'),
   VITE_APP_URL: z.string().url().optional(),
   MODE: z.enum(['development', 'production', 'test']).optional(),
   VITE_SENTRY_DSN: z.string().url().optional(),

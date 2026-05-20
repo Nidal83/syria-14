@@ -4,6 +4,7 @@ export const ar = {
 
   common: {
     appName: 'سيريا 14',
+    tagline: 'افتح بابك لمنزل أحلامك',
     loading: 'جاري التحميل...',
     error: 'حدث خطأ',
     retry: 'إعادة المحاولة',

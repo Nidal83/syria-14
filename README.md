@@ -1,4 +1,4 @@
-# Syria Homes Nest
+# Syria 14 — Unlock Your Perfect Stay
 
 A scalable real-estate platform for Syria — bilingual (Arabic / English), built on
 React, TypeScript, Vite, Tailwind, and Supabase.
@@ -10,19 +10,19 @@ React, TypeScript, Vite, Tailwind, and Supabase.
 
 ## Stack
 
-| Layer       | Choice                                        |
-| ----------- | --------------------------------------------- |
-| Framework   | React 18 + Vite + SWC                         |
-| Language    | TypeScript                                    |
-| Styling     | Tailwind CSS + shadcn/ui (Radix primitives)   |
-| State       | React Query (server) + Context (client)       |
-| Forms       | react-hook-form + Zod                         |
-| Backend     | Supabase (Postgres + Auth + Storage + RLS)    |
-| Routing     | React Router v6                               |
-| i18n        | Custom lightweight context (ar / en)          |
-| Animation   | Framer Motion                                 |
-| Testing     | Vitest + Testing Library                      |
-| Deployment  | Vercel                                        |
+| Layer      | Choice                                      |
+| ---------- | ------------------------------------------- |
+| Framework  | React 18 + Vite + SWC                       |
+| Language   | TypeScript                                  |
+| Styling    | Tailwind CSS + shadcn/ui (Radix primitives) |
+| State      | React Query (server) + Context (client)     |
+| Forms      | react-hook-form + Zod                       |
+| Backend    | Supabase (Postgres + Auth + Storage + RLS)  |
+| Routing    | React Router v6                             |
+| i18n       | Custom lightweight context (ar / en)        |
+| Animation  | Framer Motion                               |
+| Testing    | Vitest + Testing Library                    |
+| Deployment | Vercel                                      |
 
 ---
 
@@ -54,13 +54,13 @@ Open <http://localhost:8080>.
 All variables are validated at boot via `src/shared/config/env.ts` (Zod). If anything
 is missing or malformed, the app fails immediately with a clear error.
 
-| Variable                        | Required | Notes                                  |
-| ------------------------------- | -------- | -------------------------------------- |
-| `VITE_SUPABASE_URL`             | yes      | e.g. `https://xxx.supabase.co`         |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | yes      | The `anon` public key                  |
-| `VITE_SUPABASE_PROJECT_ID`      | no       | Used by some Supabase tooling          |
-| `VITE_APP_NAME`                 | no       | Defaults to "Syria Homes Nest"         |
-| `VITE_APP_URL`                  | no       | The canonical URL of this deployment   |
+| Variable                        | Required | Notes                                |
+| ------------------------------- | -------- | ------------------------------------ |
+| `VITE_SUPABASE_URL`             | yes      | e.g. `https://xxx.supabase.co`       |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | yes      | The `anon` public key                |
+| `VITE_SUPABASE_PROJECT_ID`      | no       | Used by some Supabase tooling        |
+| `VITE_APP_NAME`                 | no       | Defaults to "Syria 14"               |
+| `VITE_APP_URL`                  | no       | The canonical URL of this deployment |
 
 > ⚠️ Never commit `.env`. `.env.example` is the canonical template.
 
@@ -68,18 +68,18 @@ is missing or malformed, the app fails immediately with a clear error.
 
 ## Scripts
 
-| Script              | Purpose                                              |
-| ------------------- | ---------------------------------------------------- |
-| `npm run dev`       | Start Vite dev server on port 8080                   |
-| `npm run build`     | Production build                                     |
-| `npm run preview`   | Preview the production build locally                 |
-| `npm run typecheck` | Run `tsc --noEmit` over the project                  |
-| `npm run lint`      | ESLint, failing on any warning (CI mode)             |
-| `npm run lint:fix`  | ESLint with auto-fix                                 |
-| `npm run format`    | Prettier write                                       |
-| `npm run format:check` | Prettier check (CI-friendly)                      |
-| `npm run test`      | Run the test suite once                              |
-| `npm run test:watch`| Watch mode                                           |
+| Script                 | Purpose                                  |
+| ---------------------- | ---------------------------------------- |
+| `npm run dev`          | Start Vite dev server on port 8080       |
+| `npm run build`        | Production build                         |
+| `npm run preview`      | Preview the production build locally     |
+| `npm run typecheck`    | Run `tsc --noEmit` over the project      |
+| `npm run lint`         | ESLint, failing on any warning (CI mode) |
+| `npm run lint:fix`     | ESLint with auto-fix                     |
+| `npm run format`       | Prettier write                           |
+| `npm run format:check` | Prettier check (CI-friendly)             |
+| `npm run test`         | Run the test suite once                  |
+| `npm run test:watch`   | Watch mode                               |
 
 ---
 
@@ -113,14 +113,14 @@ See `docs/ARCHITECTURE.md` for the design principles.
 
 ## Roles
 
-| Role             | Capabilities                                                   |
-| ---------------- | -------------------------------------------------------------- |
-| `guest`          | Browse, search, view active properties                         |
-| `user`           | + Favorites, inquiries, profile                                |
-| `office`         | + CRUD own properties, manage members, view inquiries          |
-| `office_member`  | Same as `office` scoped to one office, no admin actions        |
-| `moderator` (v2) | Approve/reject offices and properties, manage inquiries        |
-| `admin`          | Everything + grant roles + audit log (granted via SQL only)    |
+| Role             | Capabilities                                                |
+| ---------------- | ----------------------------------------------------------- |
+| `guest`          | Browse, search, view active properties                      |
+| `user`           | + Favorites, inquiries, profile                             |
+| `office`         | + CRUD own properties, manage members, view inquiries       |
+| `office_member`  | Same as `office` scoped to one office, no admin actions     |
+| `moderator` (v2) | Approve/reject offices and properties, manage inquiries     |
+| `admin`          | Everything + grant roles + audit log (granted via SQL only) |
 
 ---
 
@@ -152,4 +152,4 @@ See `docs/SUPABASE_SETUP.md` for the full checklist.
 
 ## License
 
-Private — © Syria Homes Nest.
+Private — © Syria 14.

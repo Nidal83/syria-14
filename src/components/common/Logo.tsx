@@ -1,68 +1,63 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
 import { cn } from '@/lib/utils';
 
-interface Props {
+interface LogoProps {
+  /** 'light' = bright/white logo for dark (Navy/Charcoal) backgrounds.
+   *  'dark'  = dark/navy logo for light (Ivory/White) backgrounds. */
+  variant?: 'light' | 'dark';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
-  compact?: boolean;
-  /** Use on dark backgrounds (hero, dark nav) */
-  light?: boolean;
+  /** Set to true for the above-the-fold header logo (disables lazy loading). */
+  eager?: boolean;
 }
 
-export function Logo({ className, compact, light }: Props) {
+const sizeMap = {
+  sm: 'h-8',
+  md: 'h-12',
+  lg: 'h-18',
+} as const;
+
+const heightPx = { sm: 32, md: 48, lg: 72 } as const;
+
+export function Logo({ variant = 'dark', size = 'md', className, eager }: LogoProps) {
+  // Prefer the purpose-built file; fall back to the single-file logo.
+  // - 'light' variant (for dark bg): /logo-dark.png → fallback /logo-syria14.png inverted
+  // - 'dark'  variant (for light bg): /logo-light.png → fallback /logo-syria14.png as-is
+  const primarySrc = variant === 'light' ? '/logo-dark.png' : '/logo-light.png';
+  const fallbackSrc = '/logo-syria14.png';
+
+  const [src, setSrc] = useState(primarySrc);
+  const [usedFallback, setUsedFallback] = useState(false);
+
+  function handleError() {
+    if (!usedFallback) {
+      setSrc(fallbackSrc);
+      setUsedFallback(true);
+    }
+  }
+
   return (
     <Link
       to={PATHS.home}
-      className={cn('flex shrink-0 items-center', className)}
-      aria-label="Syria 14"
+      className={cn('inline-flex shrink-0 items-center', className)}
+      aria-label="Syria 14 — Unlock Your Perfect Stay"
     >
-      {compact ? (
-        /* Icon-only mode: just the house+key symbol from the logo */
-        <img
-          src="/logo-syria14.png"
-          alt="Syria 14"
-          className="h-9 w-9 object-contain"
-          onError={(e) => {
-            const t = e.currentTarget;
-            t.style.display = 'none';
-            const fallback = t.nextElementSibling as HTMLElement | null;
-            if (fallback) fallback.style.display = 'flex';
-          }}
-        />
-      ) : (
-        <img
-          src="/logo-syria14.png"
-          alt="Syria 14"
-          className={cn(
-            'object-contain',
-            light ? 'brightness-0 invert' : '',
-            'h-10 w-auto max-w-[140px]',
-          )}
-          onError={(e) => {
-            const t = e.currentTarget;
-            t.style.display = 'none';
-            const fallback = t.nextElementSibling as HTMLElement | null;
-            if (fallback) fallback.style.display = 'flex';
-          }}
-        />
-      )}
-
-      {/* Text fallback (shown only if image fails to load) */}
-      <span
-        style={{ display: 'none' }}
+      <img
+        src={src}
+        alt="Syria 14 — Unlock Your Perfect Stay"
+        height={heightPx[size]}
+        loading={eager ? 'eager' : 'lazy'}
+        onError={handleError}
         className={cn(
-          'items-center gap-2 font-black tracking-tight',
-          light ? 'text-white' : 'text-foreground',
+          'w-auto object-contain',
+          sizeMap[size],
+          // When using the fallback file, apply a CSS filter so it reads
+          // on dark backgrounds until the user supplies logo-dark.png.
+          usedFallback && variant === 'light' && 'brightness-0 invert',
         )}
-      >
-        <span
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-black"
-          style={{ background: 'hsl(38 70% 46%)', color: '#fff' }}
-        >
-          S14
-        </span>
-        {!compact && <span style={{ color: 'hsl(38 70% 46%)', fontSize: '1.1rem' }}>Syria 14</span>}
-      </span>
+      />
     </Link>
   );
 }

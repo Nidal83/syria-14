@@ -232,3 +232,7 @@ Settings → Branches → Branch protection rules → Add rule
 - **Admin MFA timing:** addressed with the rest of admin work in Phase 5.
 - **Image storage:** Supabase Storage; Cloudflare CDN consideration deferred to Phase 9.
 - **Deployment target:** Vercel.
+
+## Brand & Design System
+
+- [x] Full brand redesign: Syria 14 palette, fonts, header, footer, logo

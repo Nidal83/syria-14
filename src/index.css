@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,56 +9,62 @@
 @layer base {
   :root {
     --font-arabic: 'Cairo', sans-serif;
-    --font-english: 'Inter', sans-serif;
+    --font-english: 'Plus Jakarta Sans', 'Manrope', sans-serif;
 
-    /* Syria 14 brand: warm cream background, dark charcoal text */
-    --background: 40 18% 97%;
-    --foreground: 215 28% 18%;
+    /* Syria 14 brand palette */
+    /* Nordic Navy  #1F2C3D → hsl(214, 33%, 18%) */
+    /* Warm Sand    #D8C4A8 → hsl(35, 38%, 75%)  */
+    /* Soft Ivory   #F5F2EC → hsl(40, 35%, 95%)  */
+    /* Scandi Gray  #D9D9D7 → hsl(60, 1%, 85%)   */
+    /* Charcoal     #111827 → hsl(221, 39%, 11%)  */
+    /* Sage Green   #7A8B7A → hsl(120, 7%, 51%)   */
+
+    --background: 40 35% 95%; /* Soft Ivory */
+    --foreground: 221 39% 11%; /* Charcoal   */
 
     --card: 0 0% 100%;
-    --card-foreground: 215 28% 18%;
+    --card-foreground: 221 39% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 18%;
+    --popover-foreground: 221 39% 11%;
 
-    /* Brand gold #C4922A ≈ hsl(38 70% 46%) */
-    --primary: 38 70% 46%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 214 33% 18%; /* Nordic Navy */
+    --primary-foreground: 40 35% 95%; /* Soft Ivory  */
 
-    --primary-gold: 38 70% 46%;
-    --primary-gold-foreground: 0 0% 98%;
+    --primary-gold: 35 38% 75%;
+    --primary-gold-foreground: 221 39% 11%;
 
-    --secondary: 38 15% 92%;
-    --secondary-foreground: 215 28% 18%;
+    --secondary: 35 38% 75%; /* Warm Sand   */
+    --secondary-foreground: 221 39% 11%;
 
-    --muted: 38 10% 93%;
-    --muted-foreground: 215 15% 48%;
+    --muted: 60 1% 85%; /* Scandi Gray */
+    --muted-foreground: 0 0% 39%;
 
-    --accent: 38 55% 52%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 120 7% 51%; /* Sage Green  */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 38 15% 87%;
-    --input: 38 15% 87%;
-    --ring: 38 70% 46%;
+    --border: 60 1% 85%;
+    --input: 60 1% 85%;
+    --ring: 214 33% 18%; /* Nordic Navy */
 
     --radius: 0.75rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(38 70% 46%), hsl(38 65% 35%), hsl(215 28% 22%));
-    --gradient-hero: linear-gradient(180deg, hsl(215 30% 10% / 0.92), hsl(38 70% 30% / 0.25));
-    --shadow-card: 0 2px 16px -4px hsl(215 28% 18% / 0.08);
-    --shadow-card-hover: 0 8px 30px -8px hsl(215 28% 18% / 0.16);
+    --gradient-primary: linear-gradient(135deg, #1f2c3d, #2e4563, #d8c4a8);
+    --gradient-hero: linear-gradient(180deg, hsl(214 33% 10% / 0.9), hsl(35 38% 40% / 0.2));
+    --shadow-card: 0 2px 16px -4px hsl(214 33% 18% / 0.08);
+    --shadow-card-hover: 0 8px 30px -8px hsl(214 33% 18% / 0.16);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 215 28% 22%;
-    --sidebar-primary: 38 70% 46%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 38 15% 94%;
-    --sidebar-accent-foreground: 215 28% 18%;
-    --sidebar-border: 38 15% 87%;
-    --sidebar-ring: 38 70% 46%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 221 39% 11%;
+    --sidebar-primary: 214 33% 18%;
+    --sidebar-primary-foreground: 40 35% 95%;
+    --sidebar-accent: 60 1% 92%;
+    --sidebar-accent-foreground: 221 39% 11%;
+    --sidebar-border: 60 1% 85%;
+    --sidebar-ring: 214 33% 18%;
   }
 
   .dark {
@@ -154,11 +162,11 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-arabic), var(--font-english), sans-serif;
+    font-family: var(--font-english), var(--font-arabic), sans-serif;
   }
 
-  [dir='ltr'] body {
-    font-family: var(--font-english), var(--font-arabic), sans-serif;
+  [dir='rtl'] body {
+    font-family: var(--font-arabic), var(--font-english), sans-serif;
   }
 }
 

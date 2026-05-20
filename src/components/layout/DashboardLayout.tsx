@@ -71,7 +71,7 @@ export function DashboardLayout({ role }: Props) {
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-e border-border/60 bg-sidebar lg:flex">
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-          <Logo compact />
+          <Logo size="sm" />
           <div>
             <p className="text-xs font-semibold text-sidebar-foreground">{t.common.appName}</p>
             <p className="flex items-center gap-1 text-[10px] text-sidebar-foreground/60">

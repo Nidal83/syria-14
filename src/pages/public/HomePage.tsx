@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import SearchBox from '@/components/SearchBox';
 import PropertySection from '@/components/PropertySection';
 import PropertyCard from '@/components/PropertyCard';
+import { Logo } from '@/components/common/Logo';
 import { useI18n } from '@/lib/i18n/context';
 import { supabase } from '@/integrations/supabase/client';
 import { PATHS } from '@/routes/paths';
@@ -97,11 +98,11 @@ export default function HomePage() {
         {/* Content */}
         <div className="relative z-10 w-full px-4 pb-16 pt-8">
           <div className="mx-auto mb-10 max-w-2xl text-center">
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white drop-shadow-xl sm:text-4xl lg:text-5xl xl:text-6xl">
-              {t.search.heroTitle}
-            </h1>
-            <p className="mt-4 text-base text-white/80 drop-shadow-md sm:text-lg lg:text-xl">
-              {t.search.heroSubtitle}
+            <div className="flex justify-center">
+              <Logo variant="light" size="lg" eager />
+            </div>
+            <p className="mt-4 text-base font-medium uppercase tracking-widest text-[#D8C4A8] drop-shadow-md sm:text-lg">
+              {t.common.tagline}
             </p>
           </div>
 

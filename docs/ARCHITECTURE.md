@@ -1,6 +1,6 @@
 # Architecture
 
-This document captures the design principles for Syria Homes Nest. The codebase
+This document captures the design principles for Syria 14. The codebase
 is mid-migration from a Lovable-generated scaffold to this target. Phases 0–5
 in `docs/ROADMAP.md` track the migration.
 

@@ -6,6 +6,7 @@ export const en: Translations = {
 
   common: {
     appName: 'Syria 14',
+    tagline: 'Unlock Your Perfect Stay',
     loading: 'Loading...',
     error: 'An error occurred',
     retry: 'Retry',
