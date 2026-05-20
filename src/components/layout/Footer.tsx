@@ -69,6 +69,11 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.nav.properties}</h3>
             <ul className="space-y-2 text-sm text-[#D9D9D7]">
               <li>
+                <Link to={PATHS.home} className="transition-colors hover:text-[#D8C4A8]">
+                  {t.nav.home}
+                </Link>
+              </li>
+              <li>
                 <Link to={PATHS.properties} className="transition-colors hover:text-[#D8C4A8]">
                   {t.nav.properties}
                 </Link>

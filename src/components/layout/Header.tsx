@@ -77,6 +77,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
+    { href: PATHS.home, label: t.nav.home },
     { href: PATHS.properties, label: t.nav.properties },
     { href: PATHS.offices, label: t.nav.offices },
     { href: PATHS.search, label: t.nav.search },
