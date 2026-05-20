@@ -270,10 +270,7 @@ export default function SearchBox({ compact = false, className }: Props) {
       {/* ── Search button ── */}
       <button
         type="submit"
-        className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl text-base font-bold text-white shadow-md transition-opacity hover:opacity-90 active:opacity-80"
-        style={{
-          background: 'linear-gradient(90deg, hsl(145 45% 28%) 0%, hsl(38 70% 46%) 100%)',
-        }}
+        className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1F2C3D] text-base font-bold text-white shadow-md transition-colors hover:bg-[#2e4563] active:bg-[#1F2C3D]"
       >
         <Search className="h-5 w-5" />
         {t.common.search}

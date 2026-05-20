@@ -16,16 +16,15 @@ interface LogoProps {
 const sizeMap = {
   sm: 'h-8',
   md: 'h-12',
-  lg: 'h-18',
+  lg: 'h-16',
 } as const;
 
-const heightPx = { sm: 32, md: 48, lg: 72 } as const;
+const heightPx = { sm: 32, md: 48, lg: 64 } as const;
 
 export function Logo({ variant = 'dark', size = 'md', className, eager }: LogoProps) {
-  // Prefer the purpose-built file; fall back to the single-file logo.
-  // - 'light' variant (for dark bg): /logo-dark.png → fallback /logo-syria14.png inverted
-  // - 'dark'  variant (for light bg): /logo-light.png → fallback /logo-syria14.png as-is
-  const primarySrc = variant === 'light' ? '/logo-dark.png' : '/logo-light.png';
+  // 'light' = white/transparent logo for dark backgrounds (Navy header, Charcoal footer, hero)
+  // 'dark'  = dark/navy logo for light backgrounds (sidebar, light pages)
+  const primarySrc = variant === 'light' ? '/whitelogoheader512x512px.png' : '/logo-light.png';
   const fallbackSrc = '/logo-syria14.png';
 
   const [src, setSrc] = useState(primarySrc);
@@ -53,8 +52,6 @@ export function Logo({ variant = 'dark', size = 'md', className, eager }: LogoPr
         className={cn(
           'w-auto object-contain',
           sizeMap[size],
-          // When using the fallback file, apply a CSS filter so it reads
-          // on dark backgrounds until the user supplies logo-dark.png.
           usedFallback && variant === 'light' && 'brightness-0 invert',
         )}
       />
