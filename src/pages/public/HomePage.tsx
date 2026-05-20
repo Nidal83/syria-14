@@ -99,7 +99,7 @@ export default function HomePage() {
         <div className="relative z-10 w-full px-4 pb-16 pt-8">
           <div className="mx-auto mb-10 max-w-2xl text-center">
             <div className="flex justify-center">
-              <Logo variant="light" size="lg" eager />
+              <Logo variant="light" size="md" eager />
             </div>
             <p className="mt-4 text-base font-medium uppercase tracking-widest text-[#D8C4A8] drop-shadow-md sm:text-lg">
               {t.common.tagline}
