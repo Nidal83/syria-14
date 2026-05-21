@@ -7,7 +7,7 @@ import { PATHS } from '@/routes/paths';
 
 const SOCIAL_LINKS = [
   {
-    href: 'https://facebook.com',
+    href: 'https://www.facebook.com/syriafourteenrealestate',
     label: 'Facebook',
     icon: <Facebook className="h-4 w-4" />,
   },
