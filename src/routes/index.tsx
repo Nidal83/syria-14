@@ -17,6 +17,8 @@ const SearchPage = lazy(() => import('@/pages/public/SearchPage'));
 const OfficesPage = lazy(() => import('@/pages/public/OfficesPage'));
 const OfficeDetailPage = lazy(() => import('@/pages/public/OfficeDetailPage'));
 const ContactPage = lazy(() => import('@/pages/public/ContactPage'));
+const BlogListPage = lazy(() => import('@/pages/public/BlogListPage'));
+const BlogPostPage = lazy(() => import('@/pages/public/BlogPostPage'));
 
 // Auth
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
@@ -76,6 +78,8 @@ const router = createBrowserRouter([
           { path: '/offices/:slug', element: <OfficeDetailPage /> },
           { path: PATHS.contact, element: <ContactPage /> },
           { path: PATHS.favorites, element: <FavoritesPage /> },
+          { path: PATHS.blog, element: <BlogListPage /> },
+          { path: '/blog/:slug', element: <BlogPostPage /> },
         ],
       },
 

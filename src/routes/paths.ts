@@ -39,6 +39,10 @@ export const PATHS = {
   officeMessages: '/office/messages',
   officeSettings: '/office/settings',
 
+  // Blog
+  blog: '/blog',
+  blogPost: (slug: string) => `/blog/${slug}`,
+
   // Admin (non-public)
   adminPanel: '/control-panel',
   adminDashboard: '/control-panel/dashboard',

@@ -4,6 +4,7 @@ import SearchBox from '@/components/SearchBox';
 import PropertySection from '@/components/PropertySection';
 import PropertyCard from '@/components/PropertyCard';
 import { HeroCarousel } from '@/components/HeroCarousel';
+import { BlogSection } from '@/components/blog/BlogSection';
 import { useI18n } from '@/lib/i18n/context';
 import { supabase } from '@/integrations/supabase/client';
 import { PATHS } from '@/routes/paths';
@@ -115,6 +116,9 @@ export default function HomePage() {
         queryFn={fetchLatestProperties}
         viewAllHref={PATHS.properties}
       />
+
+      {/* ── Blog section — directly above footer ── */}
+      <BlogSection />
     </div>
   );
 }

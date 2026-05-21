@@ -439,6 +439,23 @@ export const ar = {
     },
   },
 
+  blog: {
+    sectionTitle: 'من مدونتنا',
+    sectionSubtitle: 'مقالات عن الثقافة السورية والتاريخ والاستثمار العقاري',
+    readMore: 'اقرأ المزيد',
+    viewAll: 'عرض جميع المقالات',
+    allArticles: 'جميع المقالات',
+    minRead: 'للقراءة',
+    author: 'فريق سيريا 14',
+    shareArticle: 'شارك المقال',
+    relatedArticles: 'مقالات ذات صلة',
+    tableOfContents: 'جدول المحتويات',
+    backToBlog: 'العودة إلى المدونة',
+    notFound: 'المقال غير موجود',
+    pageTitle: 'المدونة',
+    pageSubtitle: 'أحدث المقالات حول الثقافة والتاريخ والعقارات في سوريا',
+  },
+
   errors: {
     generic: 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
     notFound: 'العنصر غير موجود.',

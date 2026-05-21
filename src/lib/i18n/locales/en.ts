@@ -441,6 +441,23 @@ export const en: Translations = {
     },
   },
 
+  blog: {
+    sectionTitle: 'From Our Blog',
+    sectionSubtitle: 'Articles on Syrian culture, history, and real estate investment',
+    readMore: 'Read More',
+    viewAll: 'View All Articles',
+    allArticles: 'All Articles',
+    minRead: 'read',
+    author: 'Syria 14 Team',
+    shareArticle: 'Share Article',
+    relatedArticles: 'Related Articles',
+    tableOfContents: 'Table of Contents',
+    backToBlog: 'Back to Blog',
+    notFound: 'Article not found',
+    pageTitle: 'Blog',
+    pageSubtitle: 'Latest articles on culture, history, and real estate in Syria',
+  },
+
   errors: {
     generic: 'An unexpected error occurred. Please try again.',
     notFound: 'Item not found.',
