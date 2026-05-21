@@ -79,12 +79,12 @@ export default function HomePage() {
   const { data: featuredProperties = [] } = useFeaturedProperties();
 
   return (
-    <div className="flex flex-col bg-black">
+    <div className="flex flex-col bg-[#f5f3ef]">
       {/* ── Hero carousel ── */}
       <HeroCarousel />
 
       {/* ── Search bar below the carousel ── */}
-      <div className="bg-black px-4 pb-10 pt-6">
+      <div className="px-4 pb-10 pt-0 md:px-8">
         <div className="mx-auto max-w-4xl">
           <SearchBox />
         </div>

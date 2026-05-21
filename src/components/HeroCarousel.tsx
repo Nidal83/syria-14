@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '@/lib/i18n/context';
@@ -27,28 +28,60 @@ const SLIDES: Slide[] = [
   // { image: '/hero-tartus.png',  title: { ar: 'طرطوس',    en: 'Tartus'  }, subtitle: { ar: 'منتجع الشاطئ الأزرق',   en: 'The blue beach resort'        }, cta: { label: { ar: 'تصفح عقارات طرطوس',    en: 'Browse Tartus'   }, href: `${PATHS.properties}?city=tartus`   } },
 ];
 
-const AUTO_PLAY_MS = 6000;
-// Card spans 94 vw; 3 vw peeks on each side. Gap between cards: 12 px.
-const CARD_VW = 94;
-const PEEK_VW = (100 - CARD_VW) / 2; // 3
-const CARD_GAP = 12;
+const AUTO_PLAY_MS = 5000;
 
-// Header heights: mobile = h-14 (3.5rem), desktop = h-14 + h-11 (6.25rem)
-// The section must fill exactly the remaining viewport so nothing overflows or gaps.
-const SECTION_H = 'h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-6.25rem)]';
+// Cinematic ease curve — decelerating, premium feel
+const EASE: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
+
+const imageVariants = {
+  enter: (dir: number) => ({ opacity: 0, x: dir * 56 }),
+  center: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.82, ease: EASE },
+  },
+  exit: (dir: number) => ({
+    opacity: 0,
+    x: dir * -56,
+    transition: { duration: 0.82, ease: EASE },
+  }),
+};
+
+const contentVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: 'easeOut', delay: 0.28 },
+  },
+  exit: {
+    opacity: 0,
+    y: -10,
+    transition: { duration: 0.3, ease: 'easeIn' },
+  },
+};
+
+const arrowClass =
+  'absolute top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center ' +
+  'rounded-full border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-md ' +
+  'transition-all duration-300 hover:scale-110 hover:bg-white/28 ' +
+  'disabled:cursor-not-allowed disabled:opacity-25 ' +
+  'md:h-11 md:w-11';
 
 export function HeroCarousel() {
   const { locale, isRTL } = useI18n();
   const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [paused, setPaused] = useState(false);
   const multi = SLIDES.length > 1;
 
-  const goTo = useCallback((index: number) => {
-    setCurrent((index + SLIDES.length) % SLIDES.length);
+  const goTo = useCallback((rawIndex: number, dir: number) => {
+    setDirection(dir);
+    setCurrent((rawIndex + SLIDES.length) % SLIDES.length);
   }, []);
 
-  const prev = useCallback(() => goTo(current - 1), [current, goTo]);
-  const next = useCallback(() => goTo(current + 1), [current, goTo]);
+  const prev = useCallback(() => goTo(current - 1, -1), [current, goTo]);
+  const next = useCallback(() => goTo(current + 1, 1), [current, goTo]);
 
   useEffect(() => {
     if (!multi || paused) return;
@@ -56,110 +89,120 @@ export function HeroCarousel() {
     return () => clearInterval(id);
   }, [multi, paused, next]);
 
-  const arrowBase =
-    'absolute top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/50 disabled:opacity-30 disabled:cursor-not-allowed';
+  const slide = SLIDES[current];
 
   return (
-    <section
-      className={`relative flex flex-col overflow-hidden bg-black ${SECTION_H}`}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      {/* ── Slide track ── */}
-      <div className="min-h-0 flex-1 overflow-hidden">
-        {/* dir="ltr" keeps translateX direction consistent regardless of page direction */}
+    <section className="bg-[#f5f3ef] px-3 pb-8 pt-5 md:px-6 md:pb-12 md:pt-7 lg:px-10 lg:pb-16 lg:pt-9">
+      <div className="mx-auto max-w-[1480px]">
+        {/* ── Rounded panoramic container ── */}
         <div
-          dir="ltr"
-          className="flex h-full transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(calc(-${current} * (${CARD_VW}vw + ${CARD_GAP}px)))` }}
+          className={[
+            'relative overflow-hidden',
+            'rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.18)] md:rounded-3xl',
+            /* Responsive aspect ratio: compact on mobile → ultra-wide on desktop */
+            'aspect-[3/2] md:aspect-[16/9] lg:aspect-[21/9]',
+          ].join(' ')}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
         >
-          {SLIDES.map((s, i) => (
-            <div
-              key={i}
-              style={{ marginInlineStart: `${PEEK_VW}vw` }}
-              className="relative h-full w-[94vw] shrink-0 overflow-hidden rounded-3xl"
+          {/* ── Slide images with cinematic Framer Motion transition ── */}
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
+              key={current}
+              custom={direction}
+              variants={imageVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="absolute inset-0"
             >
               <img
-                src={s.image}
-                alt={s.title[locale]}
-                className="absolute inset-0 h-full w-full object-cover object-center"
-                loading={i === 0 ? 'eager' : 'lazy'}
+                src={slide.image}
+                alt={slide.title[locale]}
+                className="h-full w-full object-cover object-center"
+                loading="eager"
+                fetchPriority="high"
               />
-              {/* Bottom-heavy cinematic overlay */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-black/80" />
+              {/* Cinematic bottom-heavy gradient for text legibility */}
+              <div className="to-black/72 absolute inset-0 bg-gradient-to-b from-black/5 via-black/15" />
+            </motion.div>
+          </AnimatePresence>
 
-              {/* Card content — anchored to bottom */}
-              <div className="relative z-10 flex h-full flex-col items-center justify-end pb-12 text-center">
-                <h2 className="text-5xl font-bold leading-tight tracking-tight text-white drop-shadow-lg sm:text-6xl lg:text-7xl">
-                  {s.title[locale]}
-                </h2>
-                <p className="mt-3 text-base font-medium text-white/80 drop-shadow sm:text-lg">
-                  {s.subtitle[locale]}
-                </p>
+          {/* ── Slide content — fades in on each change ── */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`txt-${current}`}
+              variants={contentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center pb-8 text-center md:pb-11 lg:pb-14"
+            >
+              <h2 className="text-3xl font-bold leading-tight tracking-tight text-white drop-shadow-lg sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
+                {slide.title[locale]}
+              </h2>
+              <p className="mt-2 text-sm font-medium text-white/80 drop-shadow md:mt-3 md:text-base lg:text-lg">
+                {slide.subtitle[locale]}
+              </p>
 
-                <div className="mt-7 flex flex-wrap justify-center gap-3">
-                  <Link
-                    to={s.cta.href}
-                    className="rounded-full bg-white px-7 py-2.5 text-sm font-semibold text-black shadow-lg transition hover:bg-white/90"
-                  >
-                    {s.cta.label[locale]}
-                  </Link>
-                  <Link
-                    to={PATHS.search}
-                    className="rounded-full border border-white/60 bg-white/10 px-7 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
-                  >
-                    {locale === 'ar' ? 'البحث المتقدم' : 'Advanced Search'}
-                  </Link>
-                </div>
+              <div className="mt-5 flex flex-wrap justify-center gap-2.5 md:mt-7 md:gap-3">
+                <Link
+                  to={slide.cta.href}
+                  className="rounded-full bg-white px-5 py-2 text-xs font-semibold text-black shadow-lg transition hover:bg-white/90 md:px-7 md:py-2.5 md:text-sm"
+                >
+                  {slide.cta.label[locale]}
+                </Link>
+                <Link
+                  to={PATHS.search}
+                  className="bg-white/12 hover:bg-white/22 rounded-full border border-white/55 px-5 py-2 text-xs font-semibold text-white backdrop-blur-sm transition md:px-7 md:py-2.5 md:text-sm"
+                >
+                  {locale === 'ar' ? 'البحث المتقدم' : 'Advanced Search'}
+                </Link>
               </div>
-            </div>
-          ))}
-          {/* trailing spacer prevents last card from hard-snapping to the right edge */}
-          <div style={{ width: `${PEEK_VW}vw` }} className="shrink-0" />
-        </div>
-      </div>
+            </motion.div>
+          </AnimatePresence>
 
-      {/* ── Side navigation arrows — overlaid on the card edges ── */}
-      <button
-        onClick={isRTL ? next : prev}
-        disabled={!multi}
-        aria-label="Previous"
-        style={{ left: `calc(${PEEK_VW}vw + 12px)` }}
-        className={arrowBase}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <button
-        onClick={isRTL ? prev : next}
-        disabled={!multi}
-        aria-label="Next"
-        style={{ right: `calc(${PEEK_VW}vw + 12px)` }}
-        className={arrowBase}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
+          {/* ── Left arrow ── */}
+          <button
+            onClick={isRTL ? next : prev}
+            disabled={!multi}
+            aria-label="Previous slide"
+            className={`${arrowClass} left-3 md:left-5`}
+          >
+            <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
+          </button>
 
-      {/* ── Bottom control bar: label + dot indicators only ── */}
-      <div
-        dir={isRTL ? 'rtl' : 'ltr'}
-        className="flex h-10 shrink-0 items-center justify-between px-[3vw]"
-      >
-        <span className="text-xs font-medium uppercase tracking-widest text-white/50">
-          {locale === 'ar' ? 'استكشف المناطق' : 'Explore areas'}
-        </span>
+          {/* ── Right arrow ── */}
+          <button
+            onClick={isRTL ? prev : next}
+            disabled={!multi}
+            aria-label="Next slide"
+            className={`${arrowClass} right-3 md:right-5`}
+          >
+            <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
+          </button>
 
-        <div className="flex gap-1.5">
-          {SLIDES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              disabled={!multi}
-              aria-label={`Go to slide ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === current ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
-              }`}
-            />
-          ))}
+          {/* ── Dot indicators ── */}
+          <div className="absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 md:bottom-4">
+            {SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i, i > current ? 1 : -1)}
+                aria-label={`Go to slide ${i + 1}`}
+                className="group flex items-center"
+              >
+                <motion.span
+                  animate={{
+                    width: i === current ? 24 : 6,
+                    backgroundColor: i === current ? '#ffffff' : 'rgba(255,255,255,0.45)',
+                  }}
+                  transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  className="block h-1.5 rounded-full"
+                  style={{ display: 'block', height: 6, borderRadius: 99 }}
+                />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </section>
