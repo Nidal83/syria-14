@@ -26,7 +26,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'syrian-food-traditions',
-    image: '/hero-damascus.png',
+    image: '/hero-aleppo.png',
     category: { ar: 'ثقافة وتراث', en: 'Culture & Heritage' },
     publishedAt: '2026-04-15',
     readTime: { ar: '8 دقائق', en: '8 min read' },
@@ -202,7 +202,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'real-estate-investment-syria',
-    image: '/hero-damascus.png',
+    image: '/hero-tartus.png',
     category: { ar: 'استثمار عقاري', en: 'Real Estate Investment' },
     publishedAt: '2026-05-10',
     readTime: { ar: '10 دقائق', en: '10 min read' },
