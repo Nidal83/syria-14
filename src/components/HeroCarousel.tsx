@@ -30,7 +30,12 @@ const SLIDES: Slide[] = [
 const AUTO_PLAY_MS = 6000;
 // Card spans 94 vw; 3 vw peeks on each side. Gap between cards: 12 px.
 const CARD_VW = 94;
+const PEEK_VW = (100 - CARD_VW) / 2; // 3
 const CARD_GAP = 12;
+
+// Header heights: mobile = h-14 (3.5rem), desktop = h-14 + h-11 (6.25rem)
+// The section must fill exactly the remaining viewport so nothing overflows or gaps.
+const SECTION_H = 'h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-6.25rem)]';
 
 export function HeroCarousel() {
   const { locale, isRTL } = useI18n();
@@ -51,15 +56,15 @@ export function HeroCarousel() {
     return () => clearInterval(id);
   }, [multi, paused, next]);
 
+  const arrowBase =
+    'absolute top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/50 disabled:opacity-30 disabled:cursor-not-allowed';
+
   return (
     <section
-      className="flex h-screen flex-col overflow-hidden bg-black"
+      className={`relative flex flex-col overflow-hidden bg-black ${SECTION_H}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* 8 px gap from the bottom of the sticky header */}
-      <div className="h-2 shrink-0" />
-
       {/* ── Slide track ── */}
       <div className="min-h-0 flex-1 overflow-hidden">
         {/* dir="ltr" keeps translateX direction consistent regardless of page direction */}
@@ -71,7 +76,7 @@ export function HeroCarousel() {
           {SLIDES.map((s, i) => (
             <div
               key={i}
-              style={{ marginInlineStart: `${(100 - CARD_VW) / 2}vw` }}
+              style={{ marginInlineStart: `${PEEK_VW}vw` }}
               className="relative h-full w-[94vw] shrink-0 overflow-hidden rounded-3xl"
             >
               <img
@@ -84,7 +89,7 @@ export function HeroCarousel() {
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-black/80" />
 
               {/* Card content — anchored to bottom */}
-              <div className="relative z-10 flex h-full flex-col items-center justify-end pb-14 text-center">
+              <div className="relative z-10 flex h-full flex-col items-center justify-end pb-12 text-center">
                 <h2 className="text-5xl font-bold leading-tight tracking-tight text-white drop-shadow-lg sm:text-6xl lg:text-7xl">
                   {s.title[locale]}
                 </h2>
@@ -92,7 +97,7 @@ export function HeroCarousel() {
                   {s.subtitle[locale]}
                 </p>
 
-                <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <div className="mt-7 flex flex-wrap justify-center gap-3">
                   <Link
                     to={s.cta.href}
                     className="rounded-full bg-white px-7 py-2.5 text-sm font-semibold text-black shadow-lg transition hover:bg-white/90"
@@ -110,57 +115,53 @@ export function HeroCarousel() {
             </div>
           ))}
           {/* trailing spacer prevents last card from hard-snapping to the right edge */}
-          <div style={{ width: `${(100 - CARD_VW) / 2}vw` }} className="shrink-0" />
+          <div style={{ width: `${PEEK_VW}vw` }} className="shrink-0" />
         </div>
       </div>
 
-      {/* ── Bottom control bar — always rendered ── */}
+      {/* ── Side navigation arrows — overlaid on the card edges ── */}
+      <button
+        onClick={isRTL ? next : prev}
+        disabled={!multi}
+        aria-label="Previous"
+        style={{ left: `calc(${PEEK_VW}vw + 12px)` }}
+        className={arrowBase}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <button
+        onClick={isRTL ? prev : next}
+        disabled={!multi}
+        aria-label="Next"
+        style={{ right: `calc(${PEEK_VW}vw + 12px)` }}
+        className={arrowBase}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+
+      {/* ── Bottom control bar: label + dot indicators only ── */}
       <div
         dir={isRTL ? 'rtl' : 'ltr'}
-        className="flex h-12 shrink-0 items-center justify-between px-[3vw]"
+        className="flex h-10 shrink-0 items-center justify-between px-[3vw]"
       >
         <span className="text-xs font-medium uppercase tracking-widest text-white/50">
           {locale === 'ar' ? 'استكشف المناطق' : 'Explore areas'}
         </span>
 
-        <div className="flex items-center gap-2">
-          {/* Dot indicators */}
-          <div className="flex gap-1.5">
-            {SLIDES.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => goTo(i)}
-                disabled={!multi}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === current ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Arrow buttons — dimmed and non-interactive when only one slide */}
-          <button
-            onClick={isRTL ? next : prev}
-            disabled={!multi}
-            aria-label="Previous"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30 text-white/70 transition hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={isRTL ? prev : next}
-            disabled={!multi}
-            aria-label="Next"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30 text-white/70 transition hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+        <div className="flex gap-1.5">
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              disabled={!multi}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                i === current ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
+              }`}
+            />
+          ))}
         </div>
       </div>
-
-      {/* 8 px gap at the very bottom */}
-      <div className="h-2 shrink-0" />
     </section>
   );
 }
