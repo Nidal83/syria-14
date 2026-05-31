@@ -158,6 +158,9 @@ export const ar = {
     livingRooms: 'غرف الجلوس',
     linkCopied: 'تم نسخ الرابط',
     shareProperty: 'مشاركة',
+    reference: 'الرقم المرجعي:',
+    referenceCopy: 'نسخ الرقم المرجعي',
+    referenceCopied: 'تم نسخ الرقم المرجعي',
 
     gallery: {
       prev: 'الصورة السابقة',

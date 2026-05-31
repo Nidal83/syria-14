@@ -160,6 +160,9 @@ export const en: Translations = {
     livingRooms: 'Living Rooms',
     linkCopied: 'Link copied to clipboard',
     shareProperty: 'Share',
+    reference: 'Reference:',
+    referenceCopy: 'Copy reference',
+    referenceCopied: 'Reference copied',
 
     gallery: {
       prev: 'Previous image',

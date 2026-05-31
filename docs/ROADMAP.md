@@ -124,6 +124,8 @@ Foundation hygiene. Zero behavior changes.
 - [x] Prompt 1: CI/CD + Sentry — automated verification and error tracking
 - [x] Prompt 2: Email infrastructure (Resend SMTP + branded bilingual auth templates + shared Edge Function email layout)
 - [x] Prompt 3: i18n completeness + a11y foundation (global Zod error map, formatters, skip links, gallery aria-labels, all hardcoded strings removed from auth/public surfaces)
+- [x] Feature 1: Property reference ID (SY14-NNNNN, backfilled,
+      searchable URL, copy-to-clipboard on detail page).
 
 ### Branch protection
 
