@@ -26,6 +26,8 @@ import {
   Eye,
   FileText,
   CreditCard,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +58,7 @@ interface PropertyDetail {
   id: string;
   title: string;
   slug: string | null;
+  reference_id: string;
   description: string;
   category: string;
   listing_type: 'sale' | 'rent';
@@ -93,16 +96,26 @@ interface PropertyDetail {
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 
 const UUID_RE = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+const REFERENCE_RE = /^SY14-\d{1,8}$/i;
 
-async function fetchPropertyBySlug(slug: string): Promise<PropertyDetail | null> {
-  const col = UUID_RE.test(slug) ? 'id' : 'slug';
+async function fetchPropertyBySlug(idOrRef: string): Promise<PropertyDetail | null> {
+  // The route's :slug placeholder accepts three identifier formats:
+  // a UUID, a human-readable reference (SY14-NNNNN), or a slug.
+  let col: 'id' | 'reference_id' | 'slug' = 'slug';
+  let value = idOrRef;
+  if (UUID_RE.test(idOrRef)) {
+    col = 'id';
+  } else if (REFERENCE_RE.test(idOrRef)) {
+    col = 'reference_id';
+    value = idOrRef.trim().toUpperCase();
+  }
   const { data, error } = await supabase
     .from('properties')
     .select(
       `*, offices (id, office_name, slug, email, phone, logo_url, description),
        property_images (id, image_url, is_cover)`,
     )
-    .eq(col, slug)
+    .eq(col, value)
     .maybeSingle();
   if (error) throw error;
   return data as PropertyDetail | null;
@@ -164,6 +177,7 @@ export default function PropertyDetailPage() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [currentImg, setCurrentImg] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const { data: property, isLoading } = useQuery({
     queryKey: ['property', slug],
@@ -211,6 +225,14 @@ export default function PropertyDetailPage() {
   }
   function nextImg() {
     setCurrentImg((v) => (v === images.length - 1 ? 0 : v + 1));
+  }
+
+  async function handleCopyRef() {
+    if (!property?.reference_id) return;
+    await navigator.clipboard.writeText(property.reference_id);
+    setCopied(true);
+    toast.success(t.property.referenceCopied);
+    setTimeout(() => setCopied(false), 1500);
   }
 
   async function handleShare() {
@@ -414,6 +436,20 @@ export default function PropertyDetailPage() {
                 </Badge>
               </div>
               <h1 className="mb-3 text-2xl font-bold leading-snug sm:text-3xl">{property.title}</h1>
+              <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+                <span>{t.property.reference}</span>
+                <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-foreground">
+                  {property.reference_id}
+                </code>
+                <button
+                  type="button"
+                  onClick={handleCopyRef}
+                  aria-label={t.property.referenceCopy}
+                  className="rounded-md p-1 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                </button>
+              </div>
               <p className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 shrink-0 text-primary" />
                 {[property.city, property.district, property.address].filter(Boolean).join(', ')}

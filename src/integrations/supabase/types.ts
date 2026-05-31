@@ -445,6 +445,7 @@ export type Database = {
           payment_method: string
           price: number
           property_type: string
+          reference_id: string
           rejection_reason: string | null
           rooms: number
           slug: string | null
@@ -489,6 +490,7 @@ export type Database = {
           payment_method?: string
           price?: number
           property_type?: string
+          reference_id?: string
           rejection_reason?: string | null
           rooms?: number
           slug?: string | null
@@ -533,6 +535,7 @@ export type Database = {
           payment_method?: string
           price?: number
           property_type?: string
+          reference_id?: string
           rejection_reason?: string | null
           rooms?: number
           slug?: string | null
