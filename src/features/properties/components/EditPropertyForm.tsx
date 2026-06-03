@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
@@ -132,7 +133,9 @@ export default function EditPropertyForm() {
 
   const watchedType = useWatch({ control: form.control, name: 'property_type' });
 
-  function scrollToFirstError() {
+  function scrollToFirstError(errors?: unknown) {
+    if (errors) console.warn('[EditPropertyForm] validation errors', errors);
+    toast.error(t.property.form.fixErrors);
     requestAnimationFrame(() => {
       const firstInvalid = document.querySelector('[aria-invalid="true"]') as HTMLElement | null;
       if (firstInvalid) {
