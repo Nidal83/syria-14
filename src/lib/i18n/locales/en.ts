@@ -442,6 +442,13 @@ export const en: Translations = {
       subtitle: 'Browse our latest listings',
       view_all: 'View all properties',
     },
+    referenceSearch: {
+      label: 'Find by reference ID',
+      placeholder: 'e.g. SY14-00123',
+      submit: 'Find',
+      invalid: 'Invalid reference format',
+      notFound: 'No property found with this reference',
+    },
   },
 
   blog: {

@@ -4,6 +4,7 @@ import SearchBox from '@/components/SearchBox';
 import PropertySection from '@/components/PropertySection';
 import PropertyCard from '@/components/PropertyCard';
 import { HeroCarousel } from '@/components/HeroCarousel';
+import { ReferenceIdSearch } from '@/components/ReferenceIdSearch';
 import { BlogSection } from '@/components/blog/BlogSection';
 import { useI18n } from '@/lib/i18n/context';
 import { supabase } from '@/integrations/supabase/client';
@@ -90,6 +91,14 @@ export default function HomePage() {
           <SearchBox />
         </div>
       </div>
+
+      {/* ── Find by reference ID ── */}
+      <section className="mx-auto max-w-2xl px-4 pb-12 text-center">
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+          {t.home.referenceSearch.label}
+        </h2>
+        <ReferenceIdSearch />
+      </section>
 
       {/* ── Featured Properties ── */}
       <section className="container py-12">
