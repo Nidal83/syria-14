@@ -85,6 +85,7 @@ function toNumber(v: unknown): number | undefined {
 
 interface FarmRefineShape {
   property_type?: string;
+  price?: number;
   daily_price?: number;
   weekly_price?: number;
   monthly_price?: number;
@@ -94,8 +95,15 @@ interface FarmRefineShape {
 
 function farmRefine(v: ValidationMessages) {
   return (data: FarmRefineShape, ctx: z.RefinementCtx) => {
-    if (data.property_type !== 'farm') return;
+    if (data.property_type !== 'farm') {
+      // Every non-farm listing needs the single sale/rent price.
+      if (data.price == null) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: v.required, path: ['price'] });
+      }
+      return;
+    }
 
+    // Farm listings price by booking tier — at least one must be set.
     if (data.daily_price == null && data.weekly_price == null && data.monthly_price == null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -127,11 +135,11 @@ function propertyObject(v: ValidationMessages) {
     description: z.string().min(30, v.tooShort).max(4000, v.tooLong),
     property_type: z.enum(PROPERTY_TYPES, { required_error: v.required }),
     listing_type: z.enum(LISTING_TYPES, { required_error: v.required }),
+    // Optional at the field level: non-farm listings require it via the
+    // refinement below; farm listings price by booking tier instead.
     price: z.preprocess(
       toNumber,
-      z
-        .number({ invalid_type_error: v.notANumber, required_error: v.required })
-        .positive(v.mustBePositive),
+      z.number({ invalid_type_error: v.notANumber }).positive(v.mustBePositive).optional(),
     ),
     currency: z.enum(CURRENCIES).default('USD'),
 

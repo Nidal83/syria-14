@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
@@ -52,7 +53,10 @@ export default function NewPropertyForm() {
     },
   });
 
-  function scrollToFirstError() {
+  function scrollToFirstError(errors?: unknown) {
+    // Without this, a failed validation just silently refuses to submit.
+    if (errors) console.warn('[NewPropertyForm] validation errors', errors);
+    toast.error(t.property.form.fixErrors);
     requestAnimationFrame(() => {
       const firstInvalid = document.querySelector('[aria-invalid="true"]') as HTMLElement | null;
       if (firstInvalid) {

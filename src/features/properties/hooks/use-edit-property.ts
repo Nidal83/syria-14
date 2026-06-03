@@ -45,7 +45,10 @@ export function useEditProperty({
         description: values.description,
         property_type: values.property_type,
         listing_type: values.listing_type,
-        price: values.price,
+        price:
+          values.property_type === 'farm'
+            ? (values.daily_price ?? values.weekly_price ?? values.monthly_price ?? 0)
+            : (values.price ?? 0),
         currency: values.currency,
         governorate_id: values.governorate_id,
         area_id: values.area_id,

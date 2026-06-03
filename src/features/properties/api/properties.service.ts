@@ -84,7 +84,12 @@ export async function insertProperty(payload: PropertyInsert): Promise<CreatedPr
       description: rest.description,
       property_type: rest.property_type,
       listing_type: rest.listing_type,
-      price: rest.price,
+      // Farms have no single price — surface the daily tier (falling back to
+      // weekly/monthly) so the listing card still shows a number.
+      price:
+        rest.property_type === 'farm'
+          ? (rest.daily_price ?? rest.weekly_price ?? rest.monthly_price ?? 0)
+          : (rest.price ?? 0),
       currency: rest.currency,
       governorate_id: rest.governorate_id,
       area_id: rest.area_id,

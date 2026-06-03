@@ -175,6 +175,7 @@ export const en: Translations = {
       subtitle: 'Fill in the details to publish your listing',
       editTitle: 'Edit property',
       editSubtitle: 'Update your listing details',
+      fixErrors: 'Please fix the fields highlighted in red before publishing',
     },
     section: {
       basic: 'Basic information',
