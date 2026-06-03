@@ -440,6 +440,13 @@ export const ar = {
       subtitle: 'تصفح أحدث العروض',
       view_all: 'عرض كل العقارات',
     },
+    referenceSearch: {
+      label: 'ابحث بالرقم المرجعي',
+      placeholder: 'مثال: SY14-00123',
+      submit: 'بحث',
+      invalid: 'صيغة الرقم المرجعي غير صحيحة',
+      notFound: 'لم يتم العثور على عقار بهذا الرقم',
+    },
   },
 
   blog: {

@@ -126,6 +126,9 @@ Foundation hygiene. Zero behavior changes.
 - [x] Prompt 3: i18n completeness + a11y foundation (global Zod error map, formatters, skip links, gallery aria-labels, all hardcoded strings removed from auth/public surfaces)
 - [x] Feature 1: Property reference ID (SY14-NNNNN, backfilled,
       searchable URL, copy-to-clipboard on detail page).
+  - [x] Reference-ID search box on the home page (`ReferenceIdSearch`):
+        validates the SY14-NNNNN format, looks up the listing, and navigates
+        to its detail page or shows a "not found" toast.
 - [ ] Feature 2a: Farm category + bookings schema (migration written; apply
       both files in Supabase Studio, then regenerate types; UI in 2b/2c)
 
