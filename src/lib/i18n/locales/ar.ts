@@ -215,6 +215,7 @@ export const ar = {
       shop: 'محل تجاري',
       office: 'مكتب',
       building: 'بناء كامل',
+      farm: 'مزرعة',
       other: 'أخرى',
     },
     feature: {
@@ -288,6 +289,68 @@ export const ar = {
       freehold: 'تمليك حر',
       usufruct: 'حق انتفاع',
       waqf: 'وقف',
+    },
+    farm: {
+      pricing: 'أسعار الحجز',
+      availability: 'التوفر',
+      dailyPrice: 'سعر الليلة',
+      weeklyPrice: 'سعر الأسبوع',
+      monthlyPrice: 'سعر الشهر',
+      minDays: 'أقل عدد أيام',
+      maxDays: 'أكثر عدد أيام',
+      atLeastOnePrice: 'اختر سعراً واحداً على الأقل',
+      maxLessThanMin: 'أكثر عدد أيام يجب أن يكون أكبر من أو يساوي الأقل',
+    },
+  },
+
+  bookings: {
+    title: 'الحجوزات',
+    subtitle: 'إدارة طلبات حجز المزارع',
+    tabs: {
+      all: 'الكل',
+      pending: 'قيد المراجعة',
+      confirmed: 'مؤكدة',
+      past: 'سابقة',
+    },
+    status: {
+      pending: 'قيد المراجعة',
+      confirmed: 'مؤكد',
+      rejected: 'مرفوض',
+      cancelled: 'ملغي',
+      completed: 'مكتمل',
+    },
+    list: {
+      customer: 'العميل',
+      dates: 'التواريخ',
+      nights: '{n} ليالٍ',
+      note: 'ملاحظة العميل',
+      empty: 'لا توجد حجوزات',
+    },
+    actions: {
+      confirm: 'تأكيد الحجز',
+      reject: 'رفض الحجز',
+      details: 'التفاصيل',
+    },
+    confirm: {
+      title: 'تأكيد الحجز',
+      noteLabel: 'ملاحظة للعميل (اختياري)',
+    },
+    reject: {
+      title: 'رفض الحجز',
+      noteLabel: 'سبب الرفض (مطلوب)',
+      notePlaceholder: 'على الأقل 5 أحرف',
+    },
+    toast: {
+      confirmed: 'تم تأكيد الحجز',
+      rejected: 'تم رفض الحجز',
+      failed: 'فشل تحديث الحالة',
+    },
+  },
+
+  calendar: {
+    legend: {
+      available: 'متاح',
+      booked: 'محجوز',
     },
   },
 

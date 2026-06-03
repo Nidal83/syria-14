@@ -109,6 +109,13 @@ export async function insertProperty(payload: PropertyInsert): Promise<CreatedPr
       office_id: rest.office_id,
       status: rest.status,
       city: rest.city,
+      // Farm pricing — persisted only for farm listings; nulled otherwise so
+      // the row stays clean when the type changes.
+      daily_price: rest.property_type === 'farm' ? (rest.daily_price ?? null) : null,
+      weekly_price: rest.property_type === 'farm' ? (rest.weekly_price ?? null) : null,
+      monthly_price: rest.property_type === 'farm' ? (rest.monthly_price ?? null) : null,
+      min_booking_days: rest.property_type === 'farm' ? (rest.min_booking_days ?? null) : null,
+      max_booking_days: rest.property_type === 'farm' ? (rest.max_booking_days ?? null) : null,
     })
     .select('id')
     .single();
@@ -211,6 +218,11 @@ export interface PropertyForEdit {
   whatsapp: string | null;
   video_url: string | null;
   office_id: string;
+  daily_price: number | null;
+  weekly_price: number | null;
+  monthly_price: number | null;
+  min_booking_days: number | null;
+  max_booking_days: number | null;
   property_images: ExistingImage[];
 }
 
@@ -223,6 +235,7 @@ export async function fetchPropertyForEdit(propertyId: string): Promise<Property
        living_rooms, kitchens, floor, total_floors, building_age,
        direction, view, features, furnished, payment_method, ownership_type,
        contact_phone, whatsapp, video_url, office_id,
+       daily_price, weekly_price, monthly_price, min_booking_days, max_booking_days,
        property_images(id, image_url, is_cover)`,
     )
     .eq('id', propertyId)
@@ -269,6 +282,14 @@ export async function updatePropertyFields(
       contact_phone: payload.contact_phone,
       whatsapp: payload.whatsapp ?? '',
       video_url: payload.video_url ?? '',
+      // Farm pricing — persisted only for farm listings; nulled otherwise.
+      daily_price: payload.property_type === 'farm' ? (payload.daily_price ?? null) : null,
+      weekly_price: payload.property_type === 'farm' ? (payload.weekly_price ?? null) : null,
+      monthly_price: payload.property_type === 'farm' ? (payload.monthly_price ?? null) : null,
+      min_booking_days:
+        payload.property_type === 'farm' ? (payload.min_booking_days ?? null) : null,
+      max_booking_days:
+        payload.property_type === 'farm' ? (payload.max_booking_days ?? null) : null,
     })
     .eq('id', propertyId);
 
