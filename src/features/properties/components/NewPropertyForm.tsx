@@ -10,6 +10,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';
 import { createPropertySchema } from '../schemas/property.schema';
 import type { CreatePropertyValues } from '../schemas/property.schema';
+import { describeFormErrors } from '../lib/describe-form-errors';
 import { useCreateProperty } from '../hooks/use-create-property';
 import { BasicInfoSection } from './sections/BasicInfoSection';
 import { LocationSection } from './sections/LocationSection';
@@ -55,8 +56,9 @@ export default function NewPropertyForm() {
 
   function scrollToFirstError(errors?: unknown) {
     // Without this, a failed validation just silently refuses to submit.
-    if (errors) console.warn('[NewPropertyForm] validation errors', errors);
-    toast.error(t.property.form.fixErrors);
+    console.warn('[NewPropertyForm] validation errors', errors);
+    const fields = describeFormErrors(errors, t);
+    toast.error(t.property.form.fixErrors, fields ? { description: fields } : undefined);
     requestAnimationFrame(() => {
       const firstInvalid = document.querySelector('[aria-invalid="true"]') as HTMLElement | null;
       if (firstInvalid) {
