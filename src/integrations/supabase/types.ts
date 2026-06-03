@@ -1,3 +1,8 @@
+// PARTIAL MANUAL EDITS — bookings + farm pricing types added
+// by hand because Supabase CLI was not available. Re-run
+// `supabase gen types typescript --linked` and replace this
+// file when CLI access is restored.
+
 export type Json =
   | string
   | number
@@ -42,6 +47,74 @@ export type Database = {
             columns: ["governorate_id"]
             isOneToOne: false
             referencedRelation: "governorates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          cancelled_at: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          currency: string
+          customer_note: string | null
+          daily_rate_snapshot: number
+          end_date: string
+          id: string
+          office_note: string | null
+          property_id: string
+          rejected_at: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_price: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          currency: string
+          customer_note?: string | null
+          daily_rate_snapshot: number
+          end_date: string
+          id?: string
+          office_note?: string | null
+          property_id: string
+          rejected_at?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_note?: string | null
+          daily_rate_snapshot?: number
+          end_date?: string
+          id?: string
+          office_note?: string | null
+          property_id?: string
+          rejected_at?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -424,6 +497,7 @@ export type Database = {
           contact_phone: string
           created_at: string
           currency: string
+          daily_price: number | null
           description: string
           direction: string
           district: string | null
@@ -438,8 +512,11 @@ export type Database = {
           listing_type: Database["public"]["Enums"]["listing_type"]
           living_rooms: number
           longitude: number | null
+          max_booking_days: number | null
           meta_description: string | null
           meta_title: string | null
+          min_booking_days: number | null
+          monthly_price: number | null
           office_id: string
           ownership_type: string
           payment_method: string
@@ -455,6 +532,7 @@ export type Database = {
           updated_at: string
           video_url: string
           view: string
+          weekly_price: number | null
           whatsapp: string
         }
         Insert: {
@@ -469,6 +547,7 @@ export type Database = {
           contact_phone?: string
           created_at?: string
           currency?: string
+          daily_price?: number | null
           description?: string
           direction?: string
           district?: string | null
@@ -483,8 +562,11 @@ export type Database = {
           listing_type?: Database["public"]["Enums"]["listing_type"]
           living_rooms?: number
           longitude?: number | null
+          max_booking_days?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          min_booking_days?: number | null
+          monthly_price?: number | null
           office_id: string
           ownership_type?: string
           payment_method?: string
@@ -500,6 +582,7 @@ export type Database = {
           updated_at?: string
           video_url?: string
           view?: string
+          weekly_price?: number | null
           whatsapp?: string
         }
         Update: {
@@ -514,6 +597,7 @@ export type Database = {
           contact_phone?: string
           created_at?: string
           currency?: string
+          daily_price?: number | null
           description?: string
           direction?: string
           district?: string | null
@@ -528,8 +612,11 @@ export type Database = {
           listing_type?: Database["public"]["Enums"]["listing_type"]
           living_rooms?: number
           longitude?: number | null
+          max_booking_days?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          min_booking_days?: number | null
+          monthly_price?: number | null
           office_id?: string
           ownership_type?: string
           payment_method?: string
@@ -545,6 +632,7 @@ export type Database = {
           updated_at?: string
           video_url?: string
           view?: string
+          weekly_price?: number | null
           whatsapp?: string
         }
         Relationships: [
@@ -631,8 +719,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_booking_status: {
+        Args: {
+          p_booking_id: string
+          p_new_status: Database["public"]["Enums"]["booking_status"]
+          p_note?: string | null
+        }
+        Returns: Database["public"]["Tables"]["bookings"]["Row"]
+      }
     }
     Enums: {
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "rejected"
+        | "cancelled"
+        | "completed"
       listing_type: "rent" | "sale"
       notification_type:
         | "property_published"
@@ -640,6 +742,10 @@ export type Database = {
         | "office_rejected"
         | "new_inquiry"
         | "system"
+        | "booking_request"
+        | "booking_confirmed"
+        | "booking_rejected"
+        | "booking_cancelled"
       office_status: "pending" | "approved" | "rejected"
       property_status:
         | "pending"

@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { Form } from '@/components/ui/form';
@@ -15,9 +15,12 @@ import { useEditProperty } from '../hooks/use-edit-property';
 import { BasicInfoSection } from './sections/BasicInfoSection';
 import { LocationSection } from './sections/LocationSection';
 import { DetailsSection } from './sections/DetailsSection';
+import { FarmPricingSection } from './sections/FarmPricingSection';
 import { FeaturesSection } from './sections/FeaturesSection';
 import { ContactSection } from './sections/ContactSection';
 import { EditPhotosSection } from './EditPhotosSection';
+import { FarmAvailabilityCalendar } from '@/features/bookings/components/FarmAvailabilityCalendar';
+import { FormShell } from './FormShell';
 
 export default function EditPropertyForm() {
   const { id } = useParams<{ id: string }>();
@@ -40,8 +43,10 @@ export default function EditPropertyForm() {
         invalidUrl: t.validation.invalidUrl,
         invalidPhone: t.validation.invalidPhone,
         atLeastOneImage: t.validation.atLeastOneImage,
+        atLeastOnePrice: t.property.farm.atLeastOnePrice,
+        maxLessThanMin: t.property.farm.maxLessThanMin,
       }),
-    [t.validation],
+    [t.validation, t.property.farm],
   );
 
   const form = useForm<EditPropertyValues>({
@@ -87,6 +92,11 @@ export default function EditPropertyForm() {
           building_age: property.building_age ?? undefined,
           direction: property.direction ?? undefined,
           view: property.view ?? undefined,
+          daily_price: property.daily_price ?? undefined,
+          weekly_price: property.weekly_price ?? undefined,
+          monthly_price: property.monthly_price ?? undefined,
+          min_booking_days: property.min_booking_days ?? undefined,
+          max_booking_days: property.max_booking_days ?? undefined,
           features: mergedFeatures,
           payment_method: property.payment_method ?? undefined,
           ownership_type: property.ownership_type ?? undefined,
@@ -119,6 +129,8 @@ export default function EditPropertyForm() {
     existingImages,
     removedImageIds,
   });
+
+  const watchedType = useWatch({ control: form.control, name: 'property_type' });
 
   function scrollToFirstError() {
     requestAnimationFrame(() => {
@@ -169,6 +181,7 @@ export default function EditPropertyForm() {
           <BasicInfoSection />
           <LocationSection />
           <DetailsSection />
+          <FarmPricingSection />
           <FeaturesSection />
           <ContactSection />
           <EditPhotosSection
@@ -178,6 +191,15 @@ export default function EditPropertyForm() {
           />
         </form>
       </Form>
+
+      {/* Read-only availability calendar — farm listings only */}
+      {watchedType === 'farm' && id && (
+        <div className="mt-4">
+          <FormShell title={t.property.farm.availability}>
+            <FarmAvailabilityCalendar propertyId={id} />
+          </FormShell>
+        </div>
+      )}
 
       {/* Sticky submit bar */}
       <div className="fixed bottom-0 end-0 start-0 z-10 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">

@@ -129,8 +129,12 @@ Foundation hygiene. Zero behavior changes.
   - [x] Reference-ID search box on the home page (`ReferenceIdSearch`):
         validates the SY14-NNNNN format, looks up the listing, and navigates
         to its detail page or shows a "not found" toast.
-- [ ] Feature 2a: Farm category + bookings schema (migration written; apply
-      both files in Supabase Studio, then regenerate types; UI in 2b/2c)
+- [x] Feature 2a: Farm category + bookings schema (migration applied to prod;
+      types regenerated — manually patched pending CLI access).
+- [x] Feature 2b: Office side of farm bookings — conditional farm pricing on
+      property forms, bookings inbox (`/office/bookings`) with confirm/reject via
+      the `update_booking_status` RPC, read-only availability calendar, sidebar
+      pending-count badge. Customer-side flow is 2c.
 
 ### Branch protection
 

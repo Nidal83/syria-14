@@ -9,6 +9,7 @@ export const PROPERTY_TYPES = [
   'shop',
   'office',
   'building',
+  'farm',
   'other',
 ] as const;
 export type PropertyType = (typeof PROPERTY_TYPES)[number];
@@ -65,6 +66,8 @@ export interface ValidationMessages {
   invalidUrl: string;
   invalidPhone: string;
   atLeastOneImage: string;
+  atLeastOnePrice: string;
+  maxLessThanMin: string;
 }
 
 // ─── Helper: preprocess a form input value to number | undefined ─────────────
@@ -75,9 +78,49 @@ function toNumber(v: unknown): number | undefined {
   return Number.isNaN(n) ? undefined : n;
 }
 
+// ─── Farm-pricing cross-field refinement ─────────────────────────────────────
+// Farm listings (property_type === 'farm') must set at least one price tier,
+// and max_booking_days must not be below min_booking_days. The refinement is a
+// no-op for every other property type, so non-farm listings are unaffected.
+
+interface FarmRefineShape {
+  property_type?: string;
+  daily_price?: number;
+  weekly_price?: number;
+  monthly_price?: number;
+  min_booking_days?: number;
+  max_booking_days?: number;
+}
+
+function farmRefine(v: ValidationMessages) {
+  return (data: FarmRefineShape, ctx: z.RefinementCtx) => {
+    if (data.property_type !== 'farm') return;
+
+    if (data.daily_price == null && data.weekly_price == null && data.monthly_price == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v.atLeastOnePrice,
+        path: ['daily_price'],
+      });
+    }
+
+    if (
+      data.min_booking_days != null &&
+      data.max_booking_days != null &&
+      data.max_booking_days < data.min_booking_days
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v.maxLessThanMin,
+        path: ['max_booking_days'],
+      });
+    }
+  };
+}
+
 // ─── Schema factory ───────────────────────────────────────────────────────────
 
-export function createPropertySchema(v: ValidationMessages) {
+function propertyObject(v: ValidationMessages) {
   return z.object({
     // ── Basic info ──────────────────────────────────────────────────────────
     title: z.string().min(5, v.tooShort).max(150, v.tooLong),
@@ -140,6 +183,28 @@ export function createPropertySchema(v: ValidationMessages) {
     direction: z.string().optional(),
     view: z.string().optional(),
 
+    // ── Farm pricing (only meaningful when property_type === 'farm') ─────────
+    daily_price: z.preprocess(
+      toNumber,
+      z.number({ invalid_type_error: v.notANumber }).positive(v.mustBePositive).optional(),
+    ),
+    weekly_price: z.preprocess(
+      toNumber,
+      z.number({ invalid_type_error: v.notANumber }).positive(v.mustBePositive).optional(),
+    ),
+    monthly_price: z.preprocess(
+      toNumber,
+      z.number({ invalid_type_error: v.notANumber }).positive(v.mustBePositive).optional(),
+    ),
+    min_booking_days: z.preprocess(
+      toNumber,
+      z.number({ invalid_type_error: v.notANumber }).int().min(1, v.mustBePositive).optional(),
+    ),
+    max_booking_days: z.preprocess(
+      toNumber,
+      z.number({ invalid_type_error: v.notANumber }).int().min(1, v.mustBePositive).optional(),
+    ),
+
     // ── Features ────────────────────────────────────────────────────────────
     features: z.array(z.string()).default([]),
     payment_method: z.string().optional(),
@@ -175,17 +240,22 @@ export function createPropertySchema(v: ValidationMessages) {
   });
 }
 
+export function createPropertySchema(v: ValidationMessages) {
+  return propertyObject(v).superRefine(farmRefine(v));
+}
+
 export type CreatePropertyValues = z.infer<ReturnType<typeof createPropertySchema>>;
 
 export function editPropertySchema(v: ValidationMessages) {
-  return createPropertySchema(v)
+  return propertyObject(v)
     .omit({ images: true })
     .extend({
       images: z
         .array(z.custom<File>((val) => val instanceof File))
         .max(15)
         .default([]),
-    });
+    })
+    .superRefine(farmRefine(v));
 }
 
 export type EditPropertyValues = z.infer<ReturnType<typeof editPropertySchema>>;

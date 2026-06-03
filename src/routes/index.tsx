@@ -37,6 +37,7 @@ const ApplicationStatusPage = lazy(() => import('@/pages/pending-office/Applicat
 // Office dashboard
 const OfficeDashboardPage = lazy(() => import('@/pages/office/DashboardPage'));
 const OfficePropertiesPage = lazy(() => import('@/pages/office/PropertiesPage'));
+const OfficeBookingsPage = lazy(() => import('@/pages/office/BookingsPage'));
 const NewPropertyPage = lazy(() => import('@/pages/office/NewPropertyPage'));
 const EditPropertyPage = lazy(() => import('@/pages/office/EditPropertyPage'));
 const OfficeProfilePage = lazy(() => import('@/pages/office/ProfilePage'));
@@ -136,6 +137,7 @@ const router = createBrowserRouter([
         children: [
           { path: PATHS.officeDashboard, element: <OfficeDashboardPage /> },
           { path: PATHS.officeProperties, element: <OfficePropertiesPage /> },
+          { path: PATHS.officeBookings, element: <OfficeBookingsPage /> },
           { path: PATHS.officeNewProperty, element: <NewPropertyPage /> },
           { path: '/office/properties/:id/edit', element: <EditPropertyPage /> },
           { path: PATHS.officeProfile, element: <OfficeProfilePage /> },

@@ -33,6 +33,7 @@ export const PATHS = {
   // Office dashboard
   officeDashboard: '/office/dashboard',
   officeProperties: '/office/properties',
+  officeBookings: '/office/bookings',
   officeNewProperty: '/office/properties/new',
   officeEditProperty: (id: string) => `/office/properties/${id}/edit`,
   officeProfile: '/office/profile',

@@ -217,6 +217,7 @@ export const en: Translations = {
       shop: 'Shop',
       office: 'Office',
       building: 'Full building',
+      farm: 'Farm',
       other: 'Other',
     },
     feature: {
@@ -290,6 +291,68 @@ export const en: Translations = {
       freehold: 'Freehold',
       usufruct: 'Usufruct',
       waqf: 'Waqf',
+    },
+    farm: {
+      pricing: 'Booking pricing',
+      availability: 'Availability',
+      dailyPrice: 'Price per night',
+      weeklyPrice: 'Price per week',
+      monthlyPrice: 'Price per month',
+      minDays: 'Minimum days',
+      maxDays: 'Maximum days',
+      atLeastOnePrice: 'Set at least one price tier',
+      maxLessThanMin: 'Maximum days must be greater than or equal to minimum days',
+    },
+  },
+
+  bookings: {
+    title: 'Bookings',
+    subtitle: 'Manage farm booking requests',
+    tabs: {
+      all: 'All',
+      pending: 'Pending',
+      confirmed: 'Confirmed',
+      past: 'Past',
+    },
+    status: {
+      pending: 'Pending',
+      confirmed: 'Confirmed',
+      rejected: 'Rejected',
+      cancelled: 'Cancelled',
+      completed: 'Completed',
+    },
+    list: {
+      customer: 'Customer',
+      dates: 'Dates',
+      nights: '{n} nights',
+      note: 'Customer note',
+      empty: 'No bookings',
+    },
+    actions: {
+      confirm: 'Confirm booking',
+      reject: 'Reject booking',
+      details: 'Details',
+    },
+    confirm: {
+      title: 'Confirm booking',
+      noteLabel: 'Note to customer (optional)',
+    },
+    reject: {
+      title: 'Reject booking',
+      noteLabel: 'Reason for rejection (required)',
+      notePlaceholder: 'At least 5 characters',
+    },
+    toast: {
+      confirmed: 'Booking confirmed',
+      rejected: 'Booking rejected',
+      failed: 'Could not update booking',
+    },
+  },
+
+  calendar: {
+    legend: {
+      available: 'Available',
+      booked: 'Booked',
     },
   },
 

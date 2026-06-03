@@ -67,6 +67,11 @@ export function useEditProperty({
         contact_phone: values.contact_phone,
         whatsapp: values.whatsapp ?? null,
         video_url: values.video_url ?? null,
+        daily_price: values.daily_price ?? null,
+        weekly_price: values.weekly_price ?? null,
+        monthly_price: values.monthly_price ?? null,
+        min_booking_days: values.min_booking_days ?? null,
+        max_booking_days: values.max_booking_days ?? null,
         office_id: existing.office_id,
       });
 

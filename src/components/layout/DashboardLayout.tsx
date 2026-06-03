@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronRight,
   ShieldCheck,
+  CalendarCheck,
 } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
@@ -18,6 +19,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import { useOfficeBookings } from '@/features/bookings/hooks/useOfficeBookings';
 import { cn } from '@/lib/utils';
 
 type DashboardRole = 'office' | 'admin';
@@ -29,7 +31,11 @@ interface NavItem {
   badge?: number;
 }
 
-function useNavItems(role: DashboardRole, t: ReturnType<typeof useI18n>['t']): NavItem[] {
+function useNavItems(
+  role: DashboardRole,
+  t: ReturnType<typeof useI18n>['t'],
+  pendingBookings: number,
+): NavItem[] {
   if (role === 'admin') {
     return [
       { href: PATHS.adminDashboard, label: t.admin.dashboard, icon: LayoutDashboard },
@@ -43,6 +49,12 @@ function useNavItems(role: DashboardRole, t: ReturnType<typeof useI18n>['t']): N
   return [
     { href: PATHS.officeDashboard, label: t.office.dashboard, icon: LayoutDashboard },
     { href: PATHS.officeProperties, label: t.office.myProperties, icon: Home },
+    {
+      href: PATHS.officeBookings,
+      label: t.bookings.title,
+      icon: CalendarCheck,
+      badge: pendingBookings || undefined,
+    },
     { href: PATHS.officeProfile, label: t.office.officeName, icon: Building2 },
     { href: PATHS.officeSettings, label: t.nav.account, icon: Settings },
   ];
@@ -56,7 +68,9 @@ export function DashboardLayout({ role }: Props) {
   const { t } = useI18n();
   const { profile, logout } = useAuth();
   const location = useLocation();
-  const navItems = useNavItems(role, t);
+  const { data: bookings } = useOfficeBookings({ enabled: role === 'office' });
+  const pendingBookings = bookings?.filter((b) => b.status === 'pending').length ?? 0;
+  const navItems = useNavItems(role, t, pendingBookings);
 
   const initials = profile?.name?.slice(0, 2).toUpperCase() ?? '??';
 
@@ -106,6 +120,11 @@ export function DashboardLayout({ role }: Props) {
               >
                 <item.icon className="h-4 w-4 shrink-0" />
                 <span className="flex-1">{item.label}</span>
+                {item.badge ? (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                ) : null}
                 {active && <ChevronRight className="h-3.5 w-3.5 opacity-50" />}
               </Link>
             );

@@ -13,6 +13,7 @@ import { useCreateProperty } from '../hooks/use-create-property';
 import { BasicInfoSection } from './sections/BasicInfoSection';
 import { LocationSection } from './sections/LocationSection';
 import { DetailsSection } from './sections/DetailsSection';
+import { FarmPricingSection } from './sections/FarmPricingSection';
 import { FeaturesSection } from './sections/FeaturesSection';
 import { ContactSection } from './sections/ContactSection';
 import { PhotosSection } from './sections/PhotosSection';
@@ -33,8 +34,10 @@ export default function NewPropertyForm() {
         invalidUrl: t.validation.invalidUrl,
         invalidPhone: t.validation.invalidPhone,
         atLeastOneImage: t.validation.atLeastOneImage,
+        atLeastOnePrice: t.property.farm.atLeastOnePrice,
+        maxLessThanMin: t.property.farm.maxLessThanMin,
       }),
-    [t.validation],
+    [t.validation, t.property.farm],
   );
 
   const form = useForm<CreatePropertyValues>({
@@ -80,6 +83,7 @@ export default function NewPropertyForm() {
           <BasicInfoSection />
           <LocationSection />
           <DetailsSection />
+          <FarmPricingSection />
           <FeaturesSection />
           <ContactSection />
           <PhotosSection />
