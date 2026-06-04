@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { User, Heart, Building2 } from 'lucide-react';
+import { User, Heart, Building2, CalendarCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
@@ -45,6 +45,12 @@ export default function AccountPage() {
               <Link to={PATHS.favorites}>
                 <Heart className="me-2 h-4 w-4" />
                 {t.nav.favorites}
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to={PATHS.accountBookings}>
+                <CalendarCheck className="me-2 h-4 w-4" />
+                {t.bookings.customer.myBookings}
               </Link>
             </Button>
             {!isOffice(profile) && !isAdmin(profile) && !isPendingOffice(profile) && (

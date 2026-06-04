@@ -6,6 +6,7 @@
  */
 import type { ReactNode } from 'react';
 import { I18nProvider } from '@/lib/i18n/context';
+import { Toaster } from '@/components/ui/sonner';
 import { QueryProvider } from './QueryProvider';
 import { AuthProvider } from './AuthProvider';
 
@@ -13,7 +14,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <I18nProvider>
       <QueryProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          {/* App-wide toast outlet. Without this every toast() — success,
+              error, and form-validation feedback — is silently dropped. */}
+          <Toaster richColors position="top-center" />
+        </AuthProvider>
       </QueryProvider>
     </I18nProvider>
   );

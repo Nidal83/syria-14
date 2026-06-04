@@ -23,6 +23,7 @@ export const PATHS = {
   account: '/account',
   accountProfile: '/account/profile',
   accountFavorites: '/account/favorites',
+  accountBookings: '/account/bookings',
   accountMessages: '/account/messages',
   favorites: '/favorites',
 

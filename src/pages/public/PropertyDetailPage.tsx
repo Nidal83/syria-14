@@ -35,6 +35,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFavoritePropertyIds, useToggleFavoriteProperty } from '@/lib/hooks/useFavorites';
 import PropertyCard from '@/components/PropertyCard';
+import { BookingRequestCard } from '@/features/bookings/components/BookingRequestCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -83,6 +84,11 @@ interface PropertyDetail {
   property_type: string;
   ownership_type: string;
   payment_method: string;
+  daily_price: number | null;
+  weekly_price: number | null;
+  monthly_price: number | null;
+  min_booking_days: number | null;
+  max_booking_days: number | null;
   features: string[];
   featured_image: string | null;
   status: string;
@@ -531,6 +537,22 @@ export default function PropertyDetailPage() {
           {/* Right — sticky sidebar */}
           <div className="lg:col-span-4">
             <div className="space-y-4 lg:sticky lg:top-20">
+              {/* Farm booking widget */}
+              {property.property_type === 'farm' && (
+                <BookingRequestCard
+                  property={{
+                    id: property.id,
+                    title: property.title,
+                    daily_price: property.daily_price,
+                    weekly_price: property.weekly_price,
+                    monthly_price: property.monthly_price,
+                    currency: property.currency,
+                    min_booking_days: property.min_booking_days,
+                    max_booking_days: property.max_booking_days,
+                  }}
+                />
+              )}
+
               {/* Action buttons */}
               <div className="flex gap-2">
                 <Button

@@ -10,6 +10,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';
 import { editPropertySchema } from '../schemas/property.schema';
 import type { EditPropertyValues } from '../schemas/property.schema';
+import { describeFormErrors } from '../lib/describe-form-errors';
 import { fetchPropertyForEdit } from '../api/properties.service';
 import type { ExistingImage } from '../api/properties.service';
 import { useEditProperty } from '../hooks/use-edit-property';
@@ -134,8 +135,9 @@ export default function EditPropertyForm() {
   const watchedType = useWatch({ control: form.control, name: 'property_type' });
 
   function scrollToFirstError(errors?: unknown) {
-    if (errors) console.warn('[EditPropertyForm] validation errors', errors);
-    toast.error(t.property.form.fixErrors);
+    console.warn('[EditPropertyForm] validation errors', errors);
+    const fields = describeFormErrors(errors, t);
+    toast.error(t.property.form.fixErrors, fields ? { description: fields } : undefined);
     requestAnimationFrame(() => {
       const firstInvalid = document.querySelector('[aria-invalid="true"]') as HTMLElement | null;
       if (firstInvalid) {

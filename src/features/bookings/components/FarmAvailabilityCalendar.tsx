@@ -7,31 +7,11 @@ import { Loader2 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 import { listBookingsForProperty } from '../api/bookings.service';
 import type { BookingStatus } from '../api/bookings.service';
+import { parseISO, toKey, expandRange } from '../lib/dates';
 
 interface Props {
   propertyId: string;
   height?: 'sm' | 'md';
-}
-
-// ── Date helpers (local-time, no TZ drift) ──────────────────────────────────
-function parseISO(d: string): Date {
-  const [y, m, day] = d.split('-').map(Number);
-  return new Date(y, m - 1, day);
-}
-function toKey(d: Date): string {
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${m}-${day}`;
-}
-function expandRange(start: string, end: string): string[] {
-  const out: string[] = [];
-  const cur = parseISO(start);
-  const last = parseISO(end);
-  while (cur <= last) {
-    out.push(toKey(cur));
-    cur.setDate(cur.getDate() + 1);
-  }
-  return out;
 }
 
 /**

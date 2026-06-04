@@ -29,6 +29,7 @@ const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'));
 // User
 const AccountPage = lazy(() => import('@/pages/user/AccountPage'));
 const FavoritesPage = lazy(() => import('@/pages/user/FavoritesPage'));
+const MyBookingsPage = lazy(() => import('@/pages/user/BookingsPage'));
 const ApplyAsOfficePage = lazy(() => import('@/pages/user/ApplyAsOfficePage'));
 
 // Pending office
@@ -109,6 +110,8 @@ const router = createBrowserRouter([
         children: [
           { path: PATHS.account, element: <AccountPage /> },
           { path: PATHS.accountFavorites, element: <FavoritesPage /> },
+          { path: PATHS.accountBookings, element: <MyBookingsPage /> },
+          { path: '/bookings/:id', element: <MyBookingsPage /> },
           { path: PATHS.officeApply, element: <ApplyAsOfficePage /> },
         ],
       },
