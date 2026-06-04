@@ -67,7 +67,7 @@ export async function listOfficeBookings(): Promise<OfficeBooking[]> {
  */
 export async function updateBookingStatus(args: {
   bookingId: string;
-  newStatus: 'confirmed' | 'rejected' | 'completed';
+  newStatus: 'confirmed' | 'rejected' | 'completed' | 'cancelled';
   note?: string;
 }): Promise<Booking> {
   const { data, error } = await supabase.rpc('update_booking_status', {
@@ -99,4 +99,87 @@ export async function listBookingsForProperty(propertyId: string): Promise<Prope
     .in('status', ['pending', 'confirmed']);
   if (error) throw error;
   return (data ?? []) as PropertyBookingRange[];
+}
+
+// ── Customer side (Feature 2c) ──────────────────────────────────────────────
+
+/** Thrown when the requested range overlaps an existing pending/confirmed
+ *  booking — the DB `bookings_no_overlap` EXCLUDE constraint (SQLSTATE 23P01). */
+export class BookingOverlapError extends Error {
+  constructor() {
+    super('booking_overlap');
+    this.name = 'BookingOverlapError';
+  }
+}
+
+export interface CreateBookingArgs {
+  propertyId: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  dailyRate: number;
+  currency: string;
+  totalPrice: number;
+  customerNote?: string;
+}
+
+/**
+ * Insert a pending booking for the current user. RLS (`bookings_insert_own`)
+ * forces `user_id = auth.uid()` and `status = 'pending'`, so status is left to
+ * the column default. The DB EXCLUDE constraint is the source of truth for
+ * non-overlap; we surface its violation as a typed error.
+ */
+export async function createBooking(args: CreateBookingArgs): Promise<Booking> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('not_authenticated');
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .insert({
+      property_id: args.propertyId,
+      user_id: user.id,
+      start_date: args.startDate,
+      end_date: args.endDate,
+      daily_rate_snapshot: args.dailyRate,
+      currency: args.currency,
+      total_price: args.totalPrice,
+      customer_note: args.customerNote?.trim() || null,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === '23P01') throw new BookingOverlapError();
+    throw error;
+  }
+  return data as Booking;
+}
+
+export interface CustomerBookingProperty {
+  id: string;
+  title: string;
+  reference_id: string;
+  featured_image: string | null;
+  city: string;
+  slug: string | null;
+}
+
+export interface CustomerBooking extends Booking {
+  property: CustomerBookingProperty | null;
+}
+
+/**
+ * Every booking made by the current user, newest first. RLS
+ * (`bookings_select_own_user`) scopes to the caller, so the query is
+ * unfiltered. `property_id` references a public table, so the property can be
+ * embedded directly (unlike the office side's `user_id` → auth.users).
+ */
+export async function listMyBookings(): Promise<CustomerBooking[]> {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(`*, property:property_id ( id, title, reference_id, featured_image, city, slug )`)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as CustomerBooking[];
 }
