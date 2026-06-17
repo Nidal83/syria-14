@@ -33,6 +33,8 @@ export interface BookingRequestProperty {
   max_booking_days: number | null;
   default_checkin_time: string | null;
   default_checkout_time: string | null;
+  day_use_allowed: boolean | null;
+  min_booking_hours: number | null;
 }
 
 function startOfToday(): Date {
@@ -41,11 +43,11 @@ function startOfToday(): Date {
   return d;
 }
 
-/**
- * Customer-facing booking widget for a farm listing. Pick an available date
- * range, see the live total, and submit a pending request. The office then
- * confirms or rejects it from the 2b inbox.
- */
+function fmtTime(t: string | null | undefined): string {
+  if (!t) return '';
+  return t.slice(0, 5); // "14:00:00" → "14:00"
+}
+
 export function BookingRequestCard({ property }: { property: BookingRequestProperty }) {
   const { t, locale } = useI18n();
   const { isAuthenticated } = useAuth();
@@ -55,6 +57,8 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
   const [range, setRange] = useState<DateRange | undefined>();
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  const isDayUse = property.day_use_allowed === true;
 
   const { data: ranges = [] } = useQuery({
     queryKey: ['property-bookings', property.id],
@@ -80,8 +84,15 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
         ? property.monthly_price / 30
         : null);
 
-  const nights = range?.from && range?.to ? countNights(range.from, range.to) : 0;
-  const total = nightlyRate != null ? computeBookingTotal(nightlyRate, nights) : 0;
+  // When day_use_allowed, a single tap (range.to = undefined) is a valid
+  // same-day selection. effectiveTo collapses it to the same date.
+  const effectiveTo = range?.to ?? (isDayUse ? range?.from : undefined);
+  const hasSelection = Boolean(range?.from && effectiveTo);
+  const nights = hasSelection ? countNights(range!.from!, effectiveTo!) : 0;
+  // Same-day (day-use) = 0 calendar nights → bill 1 × daily rate.
+  const billableNights = isDayUse && nights === 0 && hasSelection ? 1 : nights;
+  const total =
+    nightlyRate != null && hasSelection ? computeBookingTotal(nightlyRate, billableNights) : 0;
 
   function fmt(value: number): string {
     const currency =
@@ -95,8 +106,8 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
       navigate(PATHS.login);
       return;
     }
-    if (!range?.from || !range?.to) {
-      toast.error(t.bookings.customer.selectRange);
+    if (!range?.from || !effectiveTo) {
+      toast.error(isDayUse ? t.bookings.customer.selectDate : t.bookings.customer.selectRange);
       return;
     }
     if (nightlyRate == null) {
@@ -104,18 +115,21 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
       return;
     }
 
-    const minNights = property.min_booking_days ?? 1;
-    if (nights < minNights) {
-      toast.error(t.bookings.customer.minNights.replace('{n}', String(minNights)));
-      return;
+    // Skip the min-nights check for a same-day (day-use) booking.
+    if (!isDayUse || nights > 0) {
+      const minNights = property.min_booking_days ?? 1;
+      if (nights < minNights) {
+        toast.error(t.bookings.customer.minNights.replace('{n}', String(minNights)));
+        return;
+      }
     }
-    if (property.max_booking_days != null && nights > property.max_booking_days) {
+    if (nights > 0 && property.max_booking_days != null && nights > property.max_booking_days) {
       toast.error(t.bookings.customer.maxNights.replace('{n}', String(property.max_booking_days)));
       return;
     }
 
     const startKey = toKey(range.from);
-    const endKey = toKey(range.to);
+    const endKey = toKey(effectiveTo);
     if (expandRange(startKey, endKey).some((k) => booked.has(k))) {
       toast.error(t.bookings.customer.toast.overlap);
       return;
@@ -125,7 +139,7 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
       {
         propertyId: property.id,
         startAt: toISOTimestamp(range.from, property.default_checkin_time),
-        endAt: toISOTimestamp(range.to, property.default_checkout_time),
+        endAt: toISOTimestamp(effectiveTo, property.default_checkout_time),
         dailyRate: Math.round(nightlyRate * 100) / 100,
         currency: property.currency,
         totalPrice: Math.round(total * 100) / 100,
@@ -195,7 +209,16 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
         </div>
       </div>
 
-      <Label className="mb-2 block text-sm">{t.bookings.customer.selectDates}</Label>
+      {/* Date selection label + day-use hint */}
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <Label className="text-sm">{t.bookings.customer.selectDates}</Label>
+        {isDayUse && (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+            {t.bookings.customer.dayUseHint}
+          </span>
+        )}
+      </div>
+
       <div className="mb-3 flex justify-center rounded-xl border border-border/50">
         <Calendar
           mode="range"
@@ -208,6 +231,18 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
           modifiersClassNames={{ booked: 'line-through opacity-60' }}
         />
       </div>
+
+      {/* Check-in / check-out times for day-use properties */}
+      {isDayUse && (property.default_checkin_time || property.default_checkout_time) && (
+        <p className="mb-3 text-center text-xs text-muted-foreground">
+          {t.bookings.customer.checkinAt.replace('{time}', fmtTime(property.default_checkin_time))}
+          {' · '}
+          {t.bookings.customer.checkoutAt.replace(
+            '{time}',
+            fmtTime(property.default_checkout_time),
+          )}
+        </p>
+      )}
 
       {/* Legend */}
       <div className="mb-4 flex items-center gap-4 text-xs text-muted-foreground">
@@ -235,10 +270,12 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
       </div>
 
       {/* Total */}
-      {nights > 0 && nightlyRate != null && (
+      {hasSelection && nightlyRate != null && (
         <div className="mb-4 flex items-center justify-between border-t border-border/50 pt-3">
           <span className="text-sm text-muted-foreground">
-            {t.bookings.customer.nights.replace('{n}', String(nights))}
+            {isDayUse && nights === 0
+              ? t.bookings.customer.dayUse
+              : t.bookings.customer.nights.replace('{n}', String(nights))}
           </span>
           <span className="text-lg font-bold">{fmt(total)}</span>
         </div>
