@@ -60,12 +60,12 @@ export type Database = {
           currency: string
           customer_note: string | null
           daily_rate_snapshot: number
-          end_date: string
+          end_at: string
           id: string
           office_note: string | null
           property_id: string
           rejected_at: string | null
-          start_date: string
+          start_at: string
           status: Database["public"]["Enums"]["booking_status"]
           total_price: number
           updated_at: string
@@ -79,12 +79,12 @@ export type Database = {
           currency: string
           customer_note?: string | null
           daily_rate_snapshot: number
-          end_date: string
+          end_at: string
           id?: string
           office_note?: string | null
           property_id: string
           rejected_at?: string | null
-          start_date: string
+          start_at: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_price: number
           updated_at?: string
@@ -98,12 +98,12 @@ export type Database = {
           currency?: string
           customer_note?: string | null
           daily_rate_snapshot?: number
-          end_date?: string
+          end_at?: string
           id?: string
           office_note?: string | null
           property_id?: string
           rejected_at?: string | null
-          start_date?: string
+          start_at?: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_price?: number
           updated_at?: string
@@ -498,6 +498,9 @@ export type Database = {
           created_at: string
           currency: string
           daily_price: number | null
+          day_use_allowed: boolean
+          default_checkin_time: string | null
+          default_checkout_time: string | null
           description: string
           direction: string
           district: string | null
@@ -516,6 +519,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           min_booking_days: number | null
+          min_booking_hours: number | null
           monthly_price: number | null
           office_id: string
           ownership_type: string
@@ -548,6 +552,9 @@ export type Database = {
           created_at?: string
           currency?: string
           daily_price?: number | null
+          day_use_allowed?: boolean
+          default_checkin_time?: string | null
+          default_checkout_time?: string | null
           description?: string
           direction?: string
           district?: string | null
@@ -566,6 +573,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           min_booking_days?: number | null
+          min_booking_hours?: number | null
           monthly_price?: number | null
           office_id: string
           ownership_type?: string
@@ -598,6 +606,9 @@ export type Database = {
           created_at?: string
           currency?: string
           daily_price?: number | null
+          day_use_allowed?: boolean
+          default_checkin_time?: string | null
+          default_checkout_time?: string | null
           description?: string
           direction?: string
           district?: string | null
@@ -616,6 +627,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           min_booking_days?: number | null
+          min_booking_hours?: number | null
           monthly_price?: number | null
           office_id?: string
           ownership_type?: string

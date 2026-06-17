@@ -19,7 +19,7 @@ import { PATHS } from '@/routes/paths';
 import { useMyBookings } from '@/features/bookings/hooks/useMyBookings';
 import { useCancelBooking } from '@/features/bookings/hooks/useCancelBooking';
 import { BookingStatusBadge } from '@/features/bookings/components/BookingStatusBadge';
-import { parseISO, countNights } from '@/features/bookings/lib/dates';
+import { countNights } from '@/features/bookings/lib/dates';
 import type { CustomerBooking } from '@/features/bookings/api/bookings.service';
 
 const CANCELLABLE = new Set(['pending', 'confirmed']);
@@ -36,7 +36,7 @@ function CustomerBookingCard({
 
   const dateLocale = locale === 'ar' ? 'ar-SY' : 'en-GB';
   const fmt = (d: string) => new Date(d).toLocaleDateString(dateLocale);
-  const nights = countNights(parseISO(booking.start_date), parseISO(booking.end_date));
+  const nights = countNights(new Date(booking.start_at), new Date(booking.end_at));
   const property = booking.property;
 
   function handleCancel() {
@@ -89,7 +89,7 @@ function CustomerBookingCard({
 
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Calendar className="h-3.5 w-3.5 shrink-0" />
-          {fmt(booking.start_date)} – {fmt(booking.end_date)}
+          {fmt(booking.start_at)} – {fmt(booking.end_at)}
           <span className="text-foreground">
             · {t.bookings.customer.nights.replace('{n}', String(nights))}
           </span>

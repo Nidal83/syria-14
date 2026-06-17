@@ -81,8 +81,8 @@ export async function updateBookingStatus(args: {
 
 export interface PropertyBookingRange {
   id: string;
-  start_date: string;
-  end_date: string;
+  start_at: string;
+  end_at: string;
   status: BookingStatus;
   user_id: string | null;
 }
@@ -94,7 +94,7 @@ export interface PropertyBookingRange {
 export async function listBookingsForProperty(propertyId: string): Promise<PropertyBookingRange[]> {
   const { data, error } = await supabase
     .from('bookings')
-    .select('id, start_date, end_date, status, user_id')
+    .select('id, start_at, end_at, status, user_id')
     .eq('property_id', propertyId)
     .in('status', ['pending', 'confirmed']);
   if (error) throw error;
@@ -114,8 +114,8 @@ export class BookingOverlapError extends Error {
 
 export interface CreateBookingArgs {
   propertyId: string;
-  startDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
+  startAt: string; // ISO timestamp (UTC)
+  endAt: string; // ISO timestamp (UTC)
   dailyRate: number;
   currency: string;
   totalPrice: number;
@@ -139,8 +139,8 @@ export async function createBooking(args: CreateBookingArgs): Promise<Booking> {
     .insert({
       property_id: args.propertyId,
       user_id: user.id,
-      start_date: args.startDate,
-      end_date: args.endDate,
+      start_at: args.startAt,
+      end_at: args.endAt,
       daily_rate_snapshot: args.dailyRate,
       currency: args.currency,
       total_price: args.totalPrice,

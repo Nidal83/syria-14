@@ -23,7 +23,7 @@ export function BookingListItem({ booking, onConfirm, onReject }: Props) {
 
   const dateLocale = locale === 'ar' ? 'ar-SY' : 'en-GB';
   const fmt = (d: string) => new Date(d).toLocaleDateString(dateLocale);
-  const nights = nightsBetween(booking.start_date, booking.end_date);
+  const nights = nightsBetween(booking.start_at, booking.end_at);
   const customerName = booking.customer?.name || t.bookings.list.customer;
   const phone = booking.customer?.phone;
 
@@ -55,7 +55,7 @@ export function BookingListItem({ booking, onConfirm, onReject }: Props) {
 
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Calendar className="h-3.5 w-3.5 shrink-0" />
-            {fmt(booking.start_date)} – {fmt(booking.end_date)}
+            {fmt(booking.start_at)} – {fmt(booking.end_at)}
             <span className="text-foreground">
               · {t.bookings.list.nights.replace('{n}', String(nights))}
             </span>

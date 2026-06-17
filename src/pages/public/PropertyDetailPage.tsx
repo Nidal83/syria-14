@@ -89,6 +89,8 @@ interface PropertyDetail {
   monthly_price: number | null;
   min_booking_days: number | null;
   max_booking_days: number | null;
+  default_checkin_time: string | null;
+  default_checkout_time: string | null;
   features: string[];
   featured_image: string | null;
   status: string;
@@ -549,6 +551,8 @@ export default function PropertyDetailPage() {
                     currency: property.currency,
                     min_booking_days: property.min_booking_days,
                     max_booking_days: property.max_booking_days,
+                    default_checkin_time: property.default_checkin_time,
+                    default_checkout_time: property.default_checkout_time,
                   }}
                 />
               )}
