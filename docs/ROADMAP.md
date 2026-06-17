@@ -135,6 +135,11 @@ Foundation hygiene. Zero behavior changes.
       property forms, bookings inbox (`/office/bookings`) with confirm/reject via
       the `update_booking_status` RPC, read-only availability calendar, sidebar
       pending-count badge. Customer-side flow is 2c.
+- [x] Feature 2b (schema fix): Switch `bookings.start_date/end_date` (DATE) to
+      `start_at/end_at` (TIMESTAMPTZ) with half-open `[)` EXCLUDE constraint;
+      add `default_checkin_time`, `default_checkout_time`, `day_use_allowed`,
+      `min_booking_hours` to `properties`. Enables day-use and back-to-back
+      bookings. Migration: `20260617000000_bookings_timestamps.sql` (not yet applied).
 
 ### Branch protection
 
