@@ -3,24 +3,45 @@
 -- range conflict detection. Supports day-use and back-to-back
 -- bookings sharing a boundary time.
 --
--- ASSUMPTION: public.bookings is empty at the time this migration
--- runs. Verified by the user in Supabase Studio before authoring.
--- If rows exist, STOP and write a proper backfill instead.
+-- PRODUCTION-SAFE: backfills existing rows before dropping DATE columns.
+-- Originally authored assuming an empty table — revised after confirming
+-- 6 live rows exist in production.
 --
--- HOW TO APPLY (do NOT run this automatically — apply in Studio):
+-- Backfill logic:
+--   start_at = (start_date + property.default_checkin_time)  AT TIME ZONE 'UTC'
+--   end_at   = (end_date   + property.default_checkout_time) AT TIME ZONE 'UTC'
+--   Step 1 sets default_checkin_time = 14:00, default_checkout_time = 12:00
+--   on all properties before the UPDATE runs, so every booking gets a
+--   sensible time even if the office has not yet customised these fields.
+--   Times are UTC — matches Supabase's server timezone default.
+--
+-- HOW TO APPLY (the agent does NOT run this against the live DB):
 --   1. Back up: Supabase Dashboard → Database → Backups.
 --   2. Supabase Studio → SQL Editor → paste and run this file.
---   3. Run the three-INSERT verification block in
---      docs/diagnostics/rollback-bookings-timestamps.sql header.
---   4. Regenerate types:
---        supabase gen types typescript --linked > src/integrations/supabase/types.ts
+--   3. Confirm the NOTICE output shows the expected row count.
+--   4. Run the SELECT verification block at the bottom.
+--   5. Regenerate types:
+--        supabase gen types typescript --linked \
+--          > src/integrations/supabase/types.ts
 --
--- ROLLBACK: see docs/diagnostics/rollback-bookings-timestamps.sql
+-- ROLLBACK: docs/diagnostics/rollback-bookings-timestamps.sql
+--   NOTE: rolling back day-use bookings (start_date = end_date) is
+--   not possible with DATE columns — see rollback file for details.
 -- ─────────────────────────────────────────────────────────────────
 
--- Step 1: property-level defaults for the booking UI.
---   These columns let the office set sensible defaults so the
---   customer form can prefill arrival/departure times.
+-- Pre-flight: log current row count so the operator can confirm
+-- the backfill touches the expected number of rows.
+DO $$
+DECLARE v_count bigint;
+BEGIN
+  SELECT COUNT(*) INTO v_count FROM public.bookings;
+  RAISE NOTICE 'public.bookings has % row(s) — backfill will run for all of them.', v_count;
+END;
+$$;
+
+-- ─── Step 1 ────────────────────────────────────────────────────
+-- Add property-level time defaults BEFORE the backfill UPDATE so
+-- that the JOIN can read default_checkin_time / default_checkout_time.
 ALTER TABLE public.properties
   ADD COLUMN IF NOT EXISTS default_checkin_time  time DEFAULT '14:00:00',
   ADD COLUMN IF NOT EXISTS default_checkout_time time DEFAULT '12:00:00',
@@ -37,26 +58,70 @@ COMMENT ON COLUMN public.properties.day_use_allowed IS
 COMMENT ON COLUMN public.properties.min_booking_hours IS
   'Minimum booking duration in hours. Relevant when day_use_allowed = true.';
 
--- Step 2: drop old date-based constraints and the column-range index.
---   The inline CHECK constraints (bookings_valid_range, bookings_not_in_past)
---   were created as named constraints inside CREATE TABLE and can be dropped
---   by name. The EXCLUDE (bookings_no_overlap) was added via ALTER TABLE.
+-- ─── Step 2 ────────────────────────────────────────────────────
+-- Drop old date-based constraints and index so the DATE columns can
+-- be dropped later. The named CHECKs were inline in CREATE TABLE but
+-- are still droppable by name.
 ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_no_overlap;
 ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_valid_range;
 ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_not_in_past;
 DROP INDEX IF EXISTS public.idx_bookings_date_range;
 
--- Step 3: drop old date columns.
---   Safe because the table is empty (assumption documented above).
+-- ─── Step 3 ────────────────────────────────────────────────────
+-- Add NULLABLE timestamp columns first so the backfill UPDATE can
+-- populate them while start_date / end_date still exist.
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS start_at timestamptz,
+  ADD COLUMN IF NOT EXISTS end_at   timestamptz;
+
+-- ─── Step 4 ────────────────────────────────────────────────────
+-- Backfill: combine the existing DATE with the property's default
+-- check-in/out time. AT TIME ZONE 'UTC' makes the result explicit
+-- regardless of the Postgres session timezone.
+UPDATE public.bookings b
+SET
+  start_at = (b.start_date + COALESCE(p.default_checkin_time,  '14:00:00'::time))
+               AT TIME ZONE 'UTC',
+  end_at   = (b.end_date   + COALESCE(p.default_checkout_time, '12:00:00'::time))
+               AT TIME ZONE 'UTC'
+FROM public.properties p
+WHERE b.property_id = p.id
+  AND (b.start_at IS NULL OR b.end_at IS NULL);
+
+-- ─── Step 5 ────────────────────────────────────────────────────
+-- Safety guard: abort if any row was not filled (e.g. a booking whose
+-- property_id no longer exists in public.properties).
+DO $$
+DECLARE v_missing bigint;
+BEGIN
+  SELECT COUNT(*) INTO v_missing
+  FROM public.bookings
+  WHERE start_at IS NULL OR end_at IS NULL;
+
+  IF v_missing > 0 THEN
+    RAISE EXCEPTION
+      'Backfill incomplete: % booking row(s) still have NULL start_at or end_at. '
+      'Check for bookings referencing a deleted property_id. Migration aborted.',
+      v_missing;
+  END IF;
+
+  RAISE NOTICE 'Backfill verified: all booking rows have start_at and end_at.';
+END;
+$$;
+
+-- ─── Step 6 ────────────────────────────────────────────────────
+-- Tighten to NOT NULL now that every row is filled.
+ALTER TABLE public.bookings
+  ALTER COLUMN start_at SET NOT NULL,
+  ALTER COLUMN end_at   SET NOT NULL;
+
+-- ─── Step 7 ────────────────────────────────────────────────────
+-- Drop old DATE columns. Safe: backfill verified in Step 5.
 ALTER TABLE public.bookings DROP COLUMN IF EXISTS start_date;
 ALTER TABLE public.bookings DROP COLUMN IF EXISTS end_date;
 
--- Step 4: add timestamp columns.
-ALTER TABLE public.bookings
-  ADD COLUMN start_at timestamptz NOT NULL,
-  ADD COLUMN end_at   timestamptz NOT NULL;
-
--- Step 5: validity + minimum duration constraints.
+-- ─── Step 8 ────────────────────────────────────────────────────
+-- Validity + minimum duration constraints.
 ALTER TABLE public.bookings
   ADD CONSTRAINT bookings_valid_range
     CHECK (end_at > start_at),
@@ -65,14 +130,12 @@ ALTER TABLE public.bookings
   ADD CONSTRAINT bookings_not_in_past
     CHECK (start_at >= '2020-01-01'::timestamptz);
 
--- Step 6: the critical EXCLUDE constraint using a HALF-OPEN range.
---
--- '[)' means start-inclusive, end-exclusive. Two ranges that touch at
--- a single point (A.end_at = B.start_at) do NOT overlap — exactly the
--- property we need: the previous guest's checkout time is the next
--- guest's check-in time. Back-to-back and day-use bookings both work.
---
--- Guarded for idempotency (re-running the migration will not error).
+-- ─── Step 9 ────────────────────────────────────────────────────
+-- EXCLUDE constraint using a HALF-OPEN range.
+-- '[)' = start-inclusive, end-exclusive: two bookings that share only
+-- a single point (A.end_at = B.start_at) do NOT conflict. This allows
+-- back-to-back bookings and day-use + overnight on the same calendar day.
+-- Guarded for idempotency.
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -88,44 +151,45 @@ BEGIN
 END;
 $$;
 
--- Step 7: index for calendar lookups by property and time range.
+-- ─── Step 10 ───────────────────────────────────────────────────
+-- Index for calendar lookups by property and time range.
 CREATE INDEX IF NOT EXISTS idx_bookings_property_time
   ON public.bookings (property_id, start_at, end_at);
 
 -- ─────────────────────────────────────────────────────────────────
--- VERIFICATION (run in Studio after applying, then DELETE the rows)
+-- VERIFICATION (run in Studio immediately after applying)
 -- ─────────────────────────────────────────────────────────────────
 --
--- Replace <real-farm-id> and <real-user-id> etc. with actual UUIDs.
+-- 1. Confirm backfilled rows look right:
+--    SELECT id, start_at, end_at, status FROM public.bookings ORDER BY start_at;
 --
--- 1. Day-use booking — SHOULD SUCCEED
+-- 2. Day-use booking — SHOULD SUCCEED (replace UUIDs with real values):
 -- INSERT INTO public.bookings
 --   (property_id, user_id, start_at, end_at, status,
 --    daily_rate_snapshot, currency, total_price)
 -- VALUES
 --   ('<real-farm-id>', '<real-user-id>',
 --    '2026-08-01 09:00+00', '2026-08-01 21:00+00', 'pending',
---    100, 'USD', 50);
+--    100, 'USD', 999);
 --
--- 2. Back-to-back at boundary — SHOULD ALSO SUCCEED (half-open: [))
+-- 3. Back-to-back at boundary — SHOULD ALSO SUCCEED (half-open [))
 -- INSERT INTO public.bookings
 --   (property_id, user_id, start_at, end_at, status,
 --    daily_rate_snapshot, currency, total_price)
 -- VALUES
 --   ('<real-farm-id>', '<another-user-id>',
 --    '2026-08-01 21:00+00', '2026-08-02 09:00+00', 'pending',
---    100, 'USD', 50);
+--    100, 'USD', 999);
 --
--- 3. Genuinely overlapping — SHOULD FAIL with
---    "conflicting key value violates exclusion constraint"
+-- 4. Genuinely overlapping — SHOULD FAIL with exclusion constraint error
 -- INSERT INTO public.bookings
 --   (property_id, user_id, start_at, end_at, status,
 --    daily_rate_snapshot, currency, total_price)
 -- VALUES
 --   ('<real-farm-id>', '<third-user-id>',
 --    '2026-08-01 15:00+00', '2026-08-01 23:00+00', 'pending',
---    100, 'USD', 50);
+--    100, 'USD', 999);
 --
 -- Clean up test rows:
---   DELETE FROM public.bookings WHERE total_price = 50;
+--   DELETE FROM public.bookings WHERE total_price = 999;
 -- ─────────────────────────────────────────────────────────────────
