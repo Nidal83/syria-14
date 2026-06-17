@@ -45,6 +45,10 @@ export const PATHS = {
   blog: '/blog',
   blogPost: (slug: string) => `/blog/${slug}`,
 
+  // Legal
+  privacy: '/privacy-policy',
+  terms: '/terms-of-use',
+
   // Admin (non-public)
   adminPanel: '/control-panel',
   adminDashboard: '/control-panel/dashboard',

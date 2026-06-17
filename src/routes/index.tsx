@@ -19,6 +19,8 @@ const OfficeDetailPage = lazy(() => import('@/pages/public/OfficeDetailPage'));
 const ContactPage = lazy(() => import('@/pages/public/ContactPage'));
 const BlogListPage = lazy(() => import('@/pages/public/BlogListPage'));
 const BlogPostPage = lazy(() => import('@/pages/public/BlogPostPage'));
+const PrivacyPolicyPage = lazy(() => import('@/pages/public/PrivacyPolicyPage'));
+const TermsOfUsePage = lazy(() => import('@/pages/public/TermsOfUsePage'));
 
 // Auth
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
@@ -82,6 +84,8 @@ const router = createBrowserRouter([
           { path: PATHS.favorites, element: <FavoritesPage /> },
           { path: PATHS.blog, element: <BlogListPage /> },
           { path: '/blog/:slug', element: <BlogPostPage /> },
+          { path: PATHS.privacy, element: <PrivacyPolicyPage /> },
+          { path: PATHS.terms, element: <TermsOfUsePage /> },
         ],
       },
 

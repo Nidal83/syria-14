@@ -682,4 +682,21 @@ export const en: Translations = {
       hoursLabel: 'Working hours',
     },
   },
+
+  footer: {
+    about: 'About Syria 14',
+    helpSupport: 'Help & Support',
+    usefulLinks: 'Useful Links',
+    legal: 'Policies & Legal',
+    privacyPolicy: 'Privacy Policy',
+    termsOfUse: 'Terms of Use',
+    blog: 'Blog',
+    mostRead: 'Most Read Articles',
+    mobileApps: 'Mobile Apps',
+    appStore: 'App Store',
+    googlePlay: 'Google Play',
+    rights: 'All rights reserved.',
+    applyAsOffice: 'Register your office',
+    pagePlaceholder: 'This page is currently being prepared. Please check back soon.',
+  },
 } as const;

@@ -680,6 +680,23 @@ export const ar = {
       hoursLabel: 'ساعات العمل',
     },
   },
+
+  footer: {
+    about: 'عن سيريا 14',
+    helpSupport: 'المساعدة والدعم',
+    usefulLinks: 'روابط مفيدة',
+    legal: 'القوانين والسياسات',
+    privacyPolicy: 'سياسة الخصوصية',
+    termsOfUse: 'تعليمات الاستخدام',
+    blog: 'المدونة',
+    mostRead: 'الأكثر قراءة',
+    mobileApps: 'تطبيقات الجوال',
+    appStore: 'App Store',
+    googlePlay: 'Google Play',
+    rights: 'جميع الحقوق محفوظة.',
+    applyAsOffice: 'سجّل مكتبك',
+    pagePlaceholder: 'هذه الصفحة قيد الإعداد. يرجى المراجعة لاحقاً.',
+  },
 } as const;
 
 // Widen all string literals to `string` so other locales can satisfy this type

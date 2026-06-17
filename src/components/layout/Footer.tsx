@@ -1,9 +1,48 @@
 import { Link } from 'react-router-dom';
-import { Send } from 'lucide-react';
-import { Facebook, Instagram } from 'lucide-react';
+import { Send, Facebook, Instagram } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
 import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';
+
+interface FooterBlogPost {
+  id: string;
+  slug: string;
+  title_ar: string;
+  title_en: string;
+}
+
+const FOOTER_BLOG_POSTS: FooterBlogPost[] = [
+  {
+    id: '1',
+    slug: 'how-to-buy-property-in-syria',
+    title_ar: 'كيفية شراء عقار في سوريا',
+    title_en: 'How to Buy Property in Syria',
+  },
+  {
+    id: '2',
+    slug: 'real-estate-investment-guide',
+    title_ar: 'دليل الاستثمار العقاري',
+    title_en: 'Real Estate Investment Guide',
+  },
+  {
+    id: '3',
+    slug: 'best-residential-areas-in-syria',
+    title_ar: 'أفضل مناطق السكن في سوريا',
+    title_en: 'Best Residential Areas in Syria',
+  },
+  {
+    id: '4',
+    slug: 'tips-before-renting',
+    title_ar: 'نصائح قبل استئجار منزل',
+    title_en: 'Tips Before Renting a Property',
+  },
+  {
+    id: '5',
+    slug: 'how-to-sell-property-faster',
+    title_ar: 'كيفية بيع العقار بسرعة',
+    title_en: 'How to Sell Property Faster',
+  },
+];
 
 const SOCIAL_LINKS = [
   {
@@ -34,14 +73,14 @@ const SOCIAL_LINKS = [
 ];
 
 export function Footer() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const year = new Date().getFullYear();
 
   return (
     <footer className="bg-[#111827] text-[#F5F2EC]">
       <div className="container py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand column */}
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {/* About OnaSyria */}
           <div className="space-y-3">
             <Logo variant="light" size="sm" />
             <p className="text-sm font-semibold text-[#D8C4A8]">Syria 14</p>
@@ -64,70 +103,120 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Properties column */}
+          {/* Help & Support */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.nav.properties}</h3>
-            <ul className="space-y-2 text-sm text-[#D9D9D7]">
-              <li>
-                <Link to={PATHS.home} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.home}
-                </Link>
-              </li>
-              <li>
-                <Link to={PATHS.properties} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.properties}
-                </Link>
-              </li>
-              <li>
-                <Link to={PATHS.search} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.search}
-                </Link>
-              </li>
-              <li>
-                <Link to={PATHS.offices} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.offices}
-                </Link>
-              </li>
-            </ul>
+            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.footer.helpSupport}</h3>
+            <nav aria-label={t.footer.helpSupport}>
+              <ul className="space-y-2 text-sm text-[#D9D9D7]">
+                <li>
+                  <Link to={PATHS.contact} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.nav.contact}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.officeApply} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.footer.applyAsOffice}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.login} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.nav.login}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.register} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.nav.register}
+                  </Link>
+                </li>
+              </ul>
+            </nav>
           </div>
 
-          {/* Account column */}
+          {/* Useful Links */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.nav.account}</h3>
-            <ul className="space-y-2 text-sm text-[#D9D9D7]">
-              <li>
-                <Link to={PATHS.login} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.login}
-                </Link>
-              </li>
-              <li>
-                <Link to={PATHS.register} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.register}
-                </Link>
-              </li>
-              <li>
-                <Link to={PATHS.favorites} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.favorites}
-                </Link>
-              </li>
-            </ul>
+            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.footer.usefulLinks}</h3>
+            <nav aria-label={t.footer.usefulLinks}>
+              <ul className="space-y-2 text-sm text-[#D9D9D7]">
+                <li>
+                  <Link to={PATHS.home} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.nav.home}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.properties} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.nav.properties}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.search} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.nav.search}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.offices} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.nav.offices}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.blog} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.footer.blog}
+                  </Link>
+                </li>
+              </ul>
+            </nav>
           </div>
 
-          {/* Contact column */}
+          {/* Policies & Legal */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.nav.contact}</h3>
-            <ul className="space-y-2 text-sm text-[#D9D9D7]">
-              <li>
-                <Link to={PATHS.contact} className="transition-colors hover:text-[#D8C4A8]">
-                  {t.nav.contact}
-                </Link>
-              </li>
+            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.footer.legal}</h3>
+            <nav aria-label={t.footer.legal}>
+              <ul className="space-y-2 text-sm text-[#D9D9D7]">
+                <li>
+                  <Link to={PATHS.privacy} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.footer.privacyPolicy}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={PATHS.terms} className="transition-colors hover:text-[#D8C4A8]">
+                    {t.footer.termsOfUse}
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          {/* Blog — Most Read Articles */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.footer.blog}</h3>
+            <p className="text-xs text-[#D8C4A8]/70">{t.footer.mostRead}</p>
+            <nav aria-label={t.footer.mostRead}>
+              <ul className="space-y-2 text-sm text-[#D9D9D7]">
+                {FOOTER_BLOG_POSTS.map((post) => (
+                  <li key={post.id}>
+                    <Link
+                      to={PATHS.blogPost(post.slug)}
+                      className="line-clamp-2 transition-colors hover:text-[#D8C4A8]"
+                    >
+                      {locale === 'ar' ? post.title_ar : post.title_en}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+
+          {/* Mobile Apps */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.footer.mobileApps}</h3>
+            <ul className="space-y-2 text-sm text-[#D9D9D7]/50">
+              <li>{t.footer.appStore}</li>
+              <li>{t.footer.googlePlay}</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-[#D9D9D7]">
-          © {year} Syria 14. All rights reserved.
+          © {year} Syria 14. {t.footer.rights}
         </div>
       </div>
     </footer>
