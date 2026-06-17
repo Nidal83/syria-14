@@ -13,7 +13,14 @@ import { useAuth } from '@/providers/AuthProvider';
 import { PATHS } from '@/routes/paths';
 import { listBookingsForProperty, BookingOverlapError } from '../api/bookings.service';
 import { useCreateBooking } from '../hooks/useCreateBooking';
-import { bookedDateSet, countNights, computeBookingTotal, expandRange, toKey } from '../lib/dates';
+import {
+  bookedDateSet,
+  countNights,
+  computeBookingTotal,
+  expandRange,
+  toKey,
+  toISOTimestamp,
+} from '../lib/dates';
 
 export interface BookingRequestProperty {
   id: string;
@@ -24,6 +31,8 @@ export interface BookingRequestProperty {
   currency: string;
   min_booking_days: number | null;
   max_booking_days: number | null;
+  default_checkin_time: string | null;
+  default_checkout_time: string | null;
 }
 
 function startOfToday(): Date {
@@ -115,8 +124,8 @@ export function BookingRequestCard({ property }: { property: BookingRequestPrope
     mutate(
       {
         propertyId: property.id,
-        startDate: startKey,
-        endDate: endKey,
+        startAt: toISOTimestamp(range.from, property.default_checkin_time),
+        endAt: toISOTimestamp(range.to, property.default_checkout_time),
         dailyRate: Math.round(nightlyRate * 100) / 100,
         currency: property.currency,
         totalPrice: Math.round(total * 100) / 100,

@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/context';
 import { listBookingsForProperty } from '../api/bookings.service';
 import type { BookingStatus } from '../api/bookings.service';
-import { parseISO, toKey, expandRange } from '../lib/dates';
+import { parseISO, toKey, expandRange, tsToDateKey } from '../lib/dates';
 
 interface Props {
   propertyId: string;
@@ -32,7 +32,7 @@ export function FarmAvailabilityCalendar({ propertyId, height = 'md' }: Props) {
   const { bookedDates, statusByKey } = useMemo(() => {
     const status = new Map<string, BookingStatus>();
     for (const r of ranges) {
-      for (const key of expandRange(r.start_date, r.end_date)) {
+      for (const key of expandRange(tsToDateKey(r.start_at), tsToDateKey(r.end_at))) {
         // Confirmed outranks pending when both touch the same day.
         if (status.get(key) !== 'confirmed') status.set(key, r.status);
       }
