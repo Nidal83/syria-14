@@ -79,7 +79,7 @@ export function Footer() {
   return (
     <footer className="bg-[#111827] text-[#F5F2EC]">
       <div className="container py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {/* About OnaSyria */}
           <div className="space-y-3">
             <Logo variant="light" size="sm" />
@@ -203,15 +203,6 @@ export function Footer() {
                 ))}
               </ul>
             </nav>
-          </div>
-
-          {/* Mobile Apps */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#D8C4A8]">{t.footer.mobileApps}</h3>
-            <ul className="space-y-2 text-sm text-[#D9D9D7]/50">
-              <li>{t.footer.appStore}</li>
-              <li>{t.footer.googlePlay}</li>
-            </ul>
           </div>
         </div>
 
