@@ -537,6 +537,11 @@ export const en: Translations = {
     hidden: 'Hidden',
     hiddenOffices: 'Hidden Offices',
     activeOffices: 'Active Offices',
+    // Users tabs
+    activeUsers: 'Active Users',
+    deactivatedUsers: 'Deactivated Users',
+    deactivationDate: 'Deactivated On',
+    inquiries: 'Inquiries',
     // Property archive / restore
     archiveProperty: 'Archive Property',
     confirmArchiveProperty:

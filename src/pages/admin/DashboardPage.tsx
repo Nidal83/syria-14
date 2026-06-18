@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Building2, Home, FileText, EyeOff, Archive } from 'lucide-react';
+import { Users, Building2, Home, FileText, EyeOff, Archive, UserX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n/context';
@@ -10,32 +10,44 @@ function useAdminStats() {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [users, activeOffices, activeProperties, pending, hiddenOffices, archivedProperties] =
-        await Promise.all([
-          supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase
-            .from('offices')
-            .select('id', { count: 'exact', head: true })
-            .eq('status', 'approved'),
-          supabase
-            .from('properties')
-            .select('id', { count: 'exact', head: true })
-            .eq('status', 'active'),
-          supabase
-            .from('office_applications')
-            .select('id', { count: 'exact', head: true })
-            .eq('status', 'pending_review'),
-          // .filter() bypasses enum type-checking for 'hidden' — remove this cast
-          // after regenerating TS types following migration 20260618100000.
-          supabase
-            .from('offices')
-            .select('id', { count: 'exact', head: true })
-            .filter('status', 'eq', 'hidden'),
-          supabase
-            .from('properties')
-            .select('id', { count: 'exact', head: true })
-            .filter('status', 'eq', 'archived'),
-        ]);
+      const [
+        users,
+        activeOffices,
+        activeProperties,
+        pending,
+        hiddenOffices,
+        archivedProperties,
+        deactivatedUsers,
+      ] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase
+          .from('offices')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'approved'),
+        supabase
+          .from('properties')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        supabase
+          .from('office_applications')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending_review'),
+        // .filter() bypasses enum type-checking for 'hidden' — remove this cast
+        // after regenerating TS types following migration 20260618100000.
+        supabase
+          .from('offices')
+          .select('id', { count: 'exact', head: true })
+          .filter('status', 'eq', 'hidden'),
+        supabase
+          .from('properties')
+          .select('id', { count: 'exact', head: true })
+          .filter('status', 'eq', 'archived'),
+        // .filter() bypasses bool type-checking for is_active — remove after types regen.
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .filter('is_active', 'eq', 'false'),
+      ]);
 
       return {
         users: users.count ?? 0,
@@ -44,6 +56,7 @@ function useAdminStats() {
         pending: pending.count ?? 0,
         hiddenOffices: hiddenOffices.count ?? 0,
         archivedProperties: archivedProperties.count ?? 0,
+        deactivatedUsers: deactivatedUsers.count ?? 0,
       };
     },
     staleTime: 1000 * 30,
@@ -91,6 +104,13 @@ export default function AdminDashboardPage() {
       href: PATHS.adminProperties,
       alert: (stats?.archivedProperties ?? 0) > 0,
     },
+    {
+      label: t.admin.deactivatedUsers,
+      value: stats?.deactivatedUsers,
+      icon: UserX,
+      href: PATHS.adminUsers,
+      alert: (stats?.deactivatedUsers ?? 0) > 0,
+    },
   ];
 
   return (
@@ -118,7 +138,7 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {alertCards.map(({ label, value, icon: Icon, href, alert }) => (
           <Card
             key={label}

@@ -8,6 +8,7 @@ import {
   ImageIcon,
   ExternalLink,
   UserX,
+  UserCheck,
   CheckCircle2,
   XCircle,
   ShieldAlert,
@@ -62,22 +63,34 @@ interface UserRow {
   phone: string;
   role: string;
   is_active: boolean | null;
+  deleted_at: string | null;
   created_at: string;
   office_applications: UserApplication[];
 }
 
-// ─── Query ────────────────────────────────────────────────────────────────────
+interface DeactivatedUserRow {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  is_active: boolean;
+  deleted_at: string | null;
+  created_at: string;
+}
 
-function useUsers() {
+// ─── Queries ──────────────────────────────────────────────────────────────────
+
+function useActiveUsers() {
   return useQuery({
-    queryKey: ['admin-users'],
+    queryKey: ['admin-users', 'active'],
     queryFn: async () => {
-      // is_active column is added by migration 20260618000000_admin_management.sql.
-      // Cast query as unknown to bypass generated-types mismatch until types are regenerated.
+      // is_active / deleted_at added by migration 20260618000000_admin_management.sql.
+      // Cast to bypass generated-types mismatch until types are regenerated.
       const query = supabase
         .from('profiles')
         .select(
-          'id, name, email, phone, role, is_active, created_at, office_applications(id, document_url, id_document_url, logo_url, office_name, status, phone, city, office_slug, description)',
+          'id, name, email, phone, role, is_active, deleted_at, created_at, office_applications(id, document_url, id_document_url, logo_url, office_name, status, phone, city, office_slug, description)',
         )
         .order('created_at', { ascending: false }) as unknown as Promise<{
         data: UserRow[] | null;
@@ -85,8 +98,28 @@ function useUsers() {
       }>;
       const { data, error } = await query;
       if (error) throw new Error(error.message);
-      // Filter out deactivated users client-side (is_active may be null before migration)
       return (data ?? []).filter((u) => u.is_active !== false);
+    },
+    staleTime: 1000 * 30,
+  });
+}
+
+function useDeactivatedUsers() {
+  return useQuery({
+    queryKey: ['admin-users', 'deactivated'],
+    queryFn: async () => {
+      // .filter() bypasses enum/bool type-checking for is_active pre-migration.
+      const query = supabase
+        .from('profiles')
+        .select('id, name, email, phone, role, is_active, deleted_at, created_at')
+        .filter('is_active', 'eq', 'false')
+        .order('deleted_at', { ascending: false }) as unknown as Promise<{
+        data: DeactivatedUserRow[] | null;
+        error: { message: string } | null;
+      }>;
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+      return data ?? [];
     },
     staleTime: 1000 * 30,
   });
@@ -121,7 +154,7 @@ function DocLink({ url, label }: { url: string | null; label: string }) {
   );
 }
 
-// ─── User row card ────────────────────────────────────────────────────────────
+// ─── Active user card ──────────────────────────────────────────────────────────
 
 function UserCard({
   user,
@@ -320,6 +353,50 @@ function UserCard({
   );
 }
 
+// ─── Deactivated user card ────────────────────────────────────────────────────
+
+function DeactivatedUserCard({
+  user,
+  onReactivate,
+}: {
+  user: DeactivatedUserRow;
+  onReactivate: (u: DeactivatedUserRow) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <Card className="border-slate-200 shadow-card">
+      <div className="flex items-center gap-3 p-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-muted-foreground">{user.name || '—'}</span>
+            <Badge className={`${roleColors[user.role] ?? roleColors.user} opacity-60`}>
+              {t.roles[user.role as keyof typeof t.roles] ?? user.role}
+            </Badge>
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {user.email}
+            {user.phone ? ` · ${user.phone}` : ''}
+          </p>
+          {user.deleted_at && (
+            <p className="mt-1 text-xs text-slate-400">
+              {t.admin.deactivationDate}: {format(new Date(user.deleted_at), 'dd/MM/yyyy HH:mm')}
+            </p>
+          )}
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="shrink-0 gap-1.5 border-green-300 text-green-700 hover:bg-green-50"
+          onClick={() => onReactivate(user)}
+        >
+          <UserCheck className="h-4 w-4" />
+          <span className="hidden sm:inline">{t.admin.reactivateUser}</span>
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 // ─── Deactivate dialog ────────────────────────────────────────────────────────
 
 function DeactivateDialog({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
@@ -368,6 +445,68 @@ function DeactivateDialog({ user, onClose }: { user: UserRow | null; onClose: ()
             disabled={mutation.isPending}
           >
             {mutation.isPending ? t.common.loading : t.admin.deactivateUser}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Reactivate dialog ────────────────────────────────────────────────────────
+
+function ReactivateDialog({
+  user,
+  onClose,
+}: {
+  user: DeactivatedUserRow | null;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const qc = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      // RPC added by migration 20260618200000_admin_reactivate_user.sql
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.rpc as any)('admin_reactivate_user', {
+        p_user_id: user.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t.admin.reactivateSuccess);
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
+      onClose();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  return (
+    <Dialog open={Boolean(user)} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t.admin.reactivateUser}</DialogTitle>
+          <DialogDescription>{t.admin.reactivateSuccess}</DialogDescription>
+        </DialogHeader>
+        {user && (
+          <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
+            <p className="font-semibold">{user.name || '—'}</p>
+            <p className="text-muted-foreground">{user.email}</p>
+            {user.deleted_at && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t.admin.deactivationDate}: {format(new Date(user.deleted_at), 'dd/MM/yyyy')}
+              </p>
+            )}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={mutation.isPending}>
+            {t.common.cancel}
+          </Button>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            {mutation.isPending ? t.common.loading : t.admin.reactivateUser}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -652,14 +791,30 @@ function RejectDialog({ user, onClose }: { user: UserRow | null; onClose: () => 
 
 export default function AdminUsersPage() {
   const { t } = useI18n();
-  const { data: users = [], isLoading, isError } = useUsers();
+  const [tab, setTab] = useState<'active' | 'deactivated'>('active');
   const [search, setSearch] = useState('');
+
+  const {
+    data: activeUsers = [],
+    isLoading: loadingActive,
+    isError: errorActive,
+  } = useActiveUsers();
+  const {
+    data: deactivatedUsers = [],
+    isLoading: loadingDeactivated,
+    isError: errorDeactivated,
+  } = useDeactivatedUsers();
+
   const [deactivatingUser, setDeactivatingUser] = useState<UserRow | null>(null);
+  const [reactivatingUser, setReactivatingUser] = useState<DeactivatedUserRow | null>(null);
   const [changingRoleUser, setChangingRoleUser] = useState<UserRow | null>(null);
   const [approvingUser, setApprovingUser] = useState<UserRow | null>(null);
   const [rejectingUser, setRejectingUser] = useState<UserRow | null>(null);
 
-  const filtered = users.filter((u) => {
+  const isLoading = tab === 'active' ? loadingActive : loadingDeactivated;
+  const isError = tab === 'active' ? errorActive : errorDeactivated;
+
+  const filteredActive = activeUsers.filter((u) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
@@ -669,13 +824,54 @@ export default function AdminUsersPage() {
     );
   });
 
+  const filteredDeactivated = deactivatedUsers.filter((u) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      u.name?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      u.phone?.toLowerCase().includes(q)
+    );
+  });
+
+  const currentCount = tab === 'active' ? filteredActive.length : filteredDeactivated.length;
+  const totalCount = tab === 'active' ? activeUsers.length : deactivatedUsers.length;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">{t.admin.users}</h1>
         <span className="text-sm text-muted-foreground">
-          {filtered.length} / {users.length}
+          {currentCount} / {totalCount}
         </span>
+      </div>
+
+      {/* Tab switcher */}
+      <div className="flex gap-1.5">
+        <Button
+          size="sm"
+          variant={tab === 'active' ? 'default' : 'outline'}
+          onClick={() => setTab('active')}
+          className="gap-1.5"
+        >
+          {t.admin.activeUsers}
+          {activeUsers.length > 0 && (
+            <Badge className="ms-1 bg-white/20 px-1.5 py-0 text-[10px]">{activeUsers.length}</Badge>
+          )}
+        </Button>
+        <Button
+          size="sm"
+          variant={tab === 'deactivated' ? 'default' : 'outline'}
+          onClick={() => setTab('deactivated')}
+          className="gap-1.5"
+        >
+          {t.admin.deactivatedUsers}
+          {deactivatedUsers.length > 0 && (
+            <Badge className="ms-1 bg-white/20 px-1.5 py-0 text-[10px]">
+              {deactivatedUsers.length}
+            </Badge>
+          )}
+        </Button>
       </div>
 
       {/* Search */}
@@ -692,24 +888,43 @@ export default function AdminUsersPage() {
       {isLoading && <p className="text-muted-foreground">{t.common.loading}</p>}
       {isError && <p className="text-destructive">{t.common.error}</p>}
 
-      {!isLoading && !isError && filtered.length === 0 && (
-        <p className="py-16 text-center text-muted-foreground">{t.common.noResults}</p>
+      {/* Active users */}
+      {!isLoading && !isError && tab === 'active' && (
+        <>
+          {filteredActive.length === 0 && (
+            <p className="py-16 text-center text-muted-foreground">{t.common.noResults}</p>
+          )}
+          <div className="space-y-3">
+            {filteredActive.map((u) => (
+              <UserCard
+                key={u.id}
+                user={u}
+                onDeactivate={setDeactivatingUser}
+                onChangeRole={setChangingRoleUser}
+                onApprove={setApprovingUser}
+                onReject={setRejectingUser}
+              />
+            ))}
+          </div>
+        </>
       )}
 
-      <div className="space-y-3">
-        {filtered.map((u) => (
-          <UserCard
-            key={u.id}
-            user={u}
-            onDeactivate={setDeactivatingUser}
-            onChangeRole={setChangingRoleUser}
-            onApprove={setApprovingUser}
-            onReject={setRejectingUser}
-          />
-        ))}
-      </div>
+      {/* Deactivated users */}
+      {!isLoading && !isError && tab === 'deactivated' && (
+        <>
+          {filteredDeactivated.length === 0 && (
+            <p className="py-16 text-center text-muted-foreground">{t.common.noResults}</p>
+          )}
+          <div className="space-y-3">
+            {filteredDeactivated.map((u) => (
+              <DeactivatedUserCard key={u.id} user={u} onReactivate={setReactivatingUser} />
+            ))}
+          </div>
+        </>
+      )}
 
       <DeactivateDialog user={deactivatingUser} onClose={() => setDeactivatingUser(null)} />
+      <ReactivateDialog user={reactivatingUser} onClose={() => setReactivatingUser(null)} />
       <ChangeRoleDialog user={changingRoleUser} onClose={() => setChangingRoleUser(null)} />
       <ApproveDialog user={approvingUser} onClose={() => setApprovingUser(null)} />
       <RejectDialog user={rejectingUser} onClose={() => setRejectingUser(null)} />

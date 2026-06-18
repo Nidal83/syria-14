@@ -48,20 +48,56 @@ interface OfficeRow {
   status: string;
   is_active: boolean;
   created_at: string;
+  propertyCount: number;
+  inquiryCount: number;
 }
 
 // ─── Query ────────────────────────────────────────────────────────────────────
 
-function useOffices() {
+function useOfficesWithCounts() {
   return useQuery({
     queryKey: ['admin-offices'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('offices')
-        .select('id, office_name, owner_name, email, phone, status, is_active, created_at')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as OfficeRow[];
+      // Three parallel fetches; counts are merged client-side.
+      const [officesRes, propertiesRes, inquiriesRes] = await Promise.all([
+        supabase
+          .from('offices')
+          .select('id, office_name, owner_name, email, phone, status, is_active, created_at')
+          .order('created_at', { ascending: false }),
+        supabase.from('properties').select('office_id'),
+        // Join inquiries → properties to get the owning office_id.
+        // Cast to bypass generated-type mismatch (join column not in types yet).
+        supabase
+          .from('inquiries')
+          .select('property_id, properties(office_id)') as unknown as Promise<{
+          data: Array<{ property_id: string; properties: { office_id: string } | null }> | null;
+          error: { message: string } | null;
+        }>,
+      ]);
+
+      if (officesRes.error) throw new Error(officesRes.error.message);
+      if (propertiesRes.error) throw new Error(propertiesRes.error.message);
+
+      // Build property count map: officeId → count
+      const propCountMap: Record<string, number> = {};
+      for (const p of propertiesRes.data ?? []) {
+        if (p.office_id) propCountMap[p.office_id] = (propCountMap[p.office_id] ?? 0) + 1;
+      }
+
+      // Build inquiry count map: officeId → count (via properties join)
+      const inqCountMap: Record<string, number> = {};
+      if (!inquiriesRes.error) {
+        for (const row of inquiriesRes.data ?? []) {
+          const officeId = row.properties?.office_id;
+          if (officeId) inqCountMap[officeId] = (inqCountMap[officeId] ?? 0) + 1;
+        }
+      }
+
+      return (officesRes.data ?? []).map((o) => ({
+        ...o,
+        propertyCount: propCountMap[o.id] ?? 0,
+        inquiryCount: inqCountMap[o.id] ?? 0,
+      })) as OfficeRow[];
     },
     staleTime: 1000 * 30,
   });
@@ -248,7 +284,7 @@ function RejectOfficeDialog({
 export default function AdminOfficesPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
-  const { data: offices = [], isLoading, isError } = useOffices();
+  const { data: offices = [], isLoading, isError } = useOfficesWithCounts();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -466,6 +502,8 @@ export default function AdminOfficesPage() {
                 <th className="px-4 py-3 text-start">{t.admin.officeOwner}</th>
                 <th className="px-4 py-3 text-start">{t.auth.email}</th>
                 <th className="px-4 py-3 text-start">{t.property.status}</th>
+                <th className="px-4 py-3 text-start">{t.admin.properties}</th>
+                <th className="px-4 py-3 text-start">{t.admin.inquiries}</th>
                 <th className="px-4 py-3 text-start">{t.admin.submittedAt}</th>
                 <th className="px-4 py-3 text-start">{t.admin.actions}</th>
               </tr>
@@ -473,7 +511,7 @@ export default function AdminOfficesPage() {
             <tbody className="divide-y divide-border/40">
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     {t.common.noResults}
                   </td>
                 </tr>
@@ -491,6 +529,8 @@ export default function AdminOfficesPage() {
                       </Badge>
                     )}
                   </td>
+                  <td className="px-4 py-3 text-center text-muted-foreground">{o.propertyCount}</td>
+                  <td className="px-4 py-3 text-center text-muted-foreground">{o.inquiryCount}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {format(new Date(o.created_at), 'dd/MM/yyyy')}
                   </td>

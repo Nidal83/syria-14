@@ -533,6 +533,11 @@ export const ar = {
     hidden: 'مخفي',
     hiddenOffices: 'المكاتب المخفية',
     activeOffices: 'المكاتب النشطة',
+    // Users tabs
+    activeUsers: 'المستخدمون النشطون',
+    deactivatedUsers: 'المستخدمون المعطلون',
+    deactivationDate: 'تاريخ التعطيل',
+    inquiries: 'الاستفسارات',
     // Property archive / restore
     archiveProperty: 'أرشفة العقار',
     confirmArchiveProperty:
