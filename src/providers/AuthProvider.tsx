@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Step 1: read profiles row
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, email, phone, avatar_url, role, created_at, updated_at')
+          .select('id, name, email, phone, avatar_url, role, is_active, created_at, updated_at')
           .eq('id', user.id)
           .single();
 
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // One retry after bootstrap
           const { data: retriedData, error: retriedError } = await supabase
             .from('profiles')
-            .select('id, name, email, phone, avatar_url, role, created_at, updated_at')
+            .select('id, name, email, phone, avatar_url, role, is_active, created_at, updated_at')
             .eq('id', user.id)
             .single();
 
@@ -120,10 +120,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return null;
           }
 
-          return retriedData as Profile;
+          const retriedProfile = retriedData as unknown as Profile;
+          if (!retriedProfile.is_active) return null;
+          return retriedProfile;
         }
 
-        return profileData as Profile;
+        // Deactivated accounts must not receive a valid session profile.
+        const profile = profileData as unknown as Profile;
+        if (!profile.is_active) return null;
+        return profile;
       } finally {
         fetchingRef.current = false;
       }
@@ -153,7 +158,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         async () => {
           const p = await fetchProfile(session.user);
-          if (p) setProfile(p);
+          if (p === null) {
+            // null = profile missing or is_active = false (admin deactivated this user).
+            await supabase.auth.signOut();
+          } else if (p !== undefined) {
+            setProfile(p);
+          }
         },
       )
       .subscribe();

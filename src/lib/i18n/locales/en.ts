@@ -88,6 +88,7 @@ export const en: Translations = {
     pending_office: 'Office (Pending Review)',
     office: 'Real Estate Office',
     admin: 'Administrator',
+    subadmin: 'Moderator',
   },
 
   property: {
@@ -118,6 +119,7 @@ export const en: Translations = {
       sold: 'Sold',
       rented: 'Rented',
       inactive: 'Inactive',
+      archived: 'Archived',
     },
     categories: {
       residential: 'Residential',
@@ -524,6 +526,30 @@ export const en: Translations = {
     ownerOffice: 'Office',
     actions: 'Actions',
     suspended: 'Suspended',
+    // Office soft-hide / restore
+    hideOffice: 'Hide Office',
+    confirmHideOffice:
+      'Hide this office? It will be removed from the public website. All data and properties are preserved.',
+    hideOfficeSuccess: 'Office hidden',
+    restoreOffice: 'Restore Office',
+    confirmRestoreOffice: 'Restore this office to its previous status?',
+    restoreOfficeSuccess: 'Office restored',
+    hidden: 'Hidden',
+    hiddenOffices: 'Hidden Offices',
+    activeOffices: 'Active Offices',
+    // Property archive / restore
+    archiveProperty: 'Archive Property',
+    confirmArchiveProperty:
+      'Archive this property? It will be removed from all listings. Images, favourites and inquiries are preserved.',
+    archiveSuccess: 'Property archived',
+    restoreProperty: 'Restore Property',
+    confirmRestoreProperty: 'Restore this property to unpublished status?',
+    restorePropertySuccess: 'Property restored',
+    archived: 'Archived',
+    archivedProperties: 'Archived Properties',
+    activeProperties: 'Active Properties',
+    publish: 'Publish',
+    publishSuccess: 'Property published',
   },
 
   pages: {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Trash2, EyeOff, Eye, Search, MoreHorizontal } from 'lucide-react';
+import { EyeOff, Eye, Search, MoreHorizontal, ArchiveRestore, Archive } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n/context';
@@ -69,6 +69,7 @@ const statusColors: Record<string, string> = {
   sold: 'bg-blue-100 text-blue-800',
   rented: 'bg-blue-100 text-blue-700',
   draft: 'bg-gray-100 text-gray-700',
+  archived: 'bg-slate-100 text-slate-500',
 };
 
 // ─── Confirm dialog (generic) ─────────────────────────────────────────────────
@@ -130,7 +131,8 @@ export default function AdminPropertiesPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  type Action = 'delete' | 'unpublish' | 'republish';
+  // No delete action anywhere in this page
+  type Action = 'unpublish' | 'publish' | 'archive' | 'restore';
   const [activeAction, setActiveAction] = useState<Action | null>(null);
   const [targetProperty, setTargetProperty] = useState<PropertyRow | null>(null);
 
@@ -145,28 +147,40 @@ export default function AdminPropertiesPage() {
 
   const mutation = useMutation({
     mutationFn: async ({ action, property }: { action: Action; property: PropertyRow }) => {
-      if (action === 'delete') {
-        const { error } = await supabase.from('properties').delete().eq('id', property.id);
-        if (error) throw error;
-      } else if (action === 'unpublish') {
+      if (action === 'unpublish') {
         const { error } = await supabase
           .from('properties')
           .update({ status: 'hidden' })
           .eq('id', property.id);
         if (error) throw error;
-      } else if (action === 'republish') {
+      } else if (action === 'publish') {
         const { error } = await supabase
           .from('properties')
           .update({ status: 'active' })
           .eq('id', property.id);
         if (error) throw error;
+      } else if (action === 'archive') {
+        // admin_archive_property: SECURITY DEFINER RPC added by migration 20260618100000.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)('admin_archive_property', {
+          p_property_id: property.id,
+        });
+        if (error) throw error;
+      } else if (action === 'restore') {
+        // admin_restore_property: SECURITY DEFINER RPC added by migration 20260618100000.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)('admin_restore_property', {
+          p_property_id: property.id,
+        });
+        if (error) throw error;
       }
     },
     onSuccess: (_, { action }) => {
       const successMap: Record<Action, string> = {
-        delete: t.admin.deletePropertySuccess,
         unpublish: t.admin.unpublishSuccess,
-        republish: t.admin.republishSuccess,
+        publish: t.admin.publishSuccess,
+        archive: t.admin.archiveSuccess,
+        restore: t.admin.restorePropertySuccess,
       };
       toast.success(successMap[action]);
       qc.invalidateQueries({ queryKey: ['admin-properties'] });
@@ -190,33 +204,44 @@ export default function AdminPropertiesPage() {
     return true;
   });
 
-  const dialogProps = () => {
+  const dialogProps = (): {
+    title: string;
+    description: string;
+    label: string;
+    destructive?: boolean;
+  } | null => {
     if (!activeAction || !targetProperty) return null;
     const map: Record<
       Action,
       { title: string; description: string; label: string; destructive?: boolean }
     > = {
-      delete: {
-        title: t.admin.deleteProperty,
-        description: t.admin.confirmDeleteProperty,
-        label: t.admin.deleteProperty,
-        destructive: true,
-      },
       unpublish: {
         title: t.admin.unpublish,
         description: t.admin.unpublish,
         label: t.admin.unpublish,
       },
-      republish: {
-        title: t.admin.republish,
-        description: t.admin.republish,
-        label: t.admin.republish,
+      publish: {
+        title: t.admin.publish,
+        description: t.admin.publish,
+        label: t.admin.publish,
+      },
+      archive: {
+        title: t.admin.archiveProperty,
+        description: t.admin.confirmArchiveProperty,
+        label: t.admin.archiveProperty,
+      },
+      restore: {
+        title: t.admin.restoreProperty,
+        description: t.admin.confirmRestoreProperty,
+        label: t.admin.restoreProperty,
       },
     };
     return map[activeAction];
   };
 
   const dp = dialogProps();
+
+  const filterTabs = ['all', 'active', 'hidden', 'pending', 'inactive', 'archived'] as const;
 
   return (
     <div className="space-y-4">
@@ -239,7 +264,7 @@ export default function AdminPropertiesPage() {
           />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {(['all', 'active', 'hidden', 'pending', 'inactive'] as const).map((s) => (
+          {filterTabs.map((s) => (
             <Button
               key={s}
               size="sm"
@@ -314,29 +339,42 @@ export default function AdminPropertiesPage() {
                           <span className="sr-only">{t.admin.actions}</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="min-w-40">
-                        {/* Unpublish (active properties) */}
-                        {p.status === 'active' && (
-                          <DropdownMenuItem onClick={() => openAction('unpublish', p)}>
-                            <EyeOff className="me-2 h-4 w-4" />
-                            {t.admin.unpublish}
+                      <DropdownMenuContent align="end" className="min-w-44">
+                        {/* Archived: only Restore */}
+                        {p.status === 'archived' && (
+                          <DropdownMenuItem onClick={() => openAction('restore', p)}>
+                            <ArchiveRestore className="me-2 h-4 w-4 text-green-600" />
+                            {t.admin.restoreProperty}
                           </DropdownMenuItem>
                         )}
-                        {/* Republish (hidden/inactive) */}
-                        {(p.status === 'hidden' || p.status === 'inactive') && (
-                          <DropdownMenuItem onClick={() => openAction('republish', p)}>
-                            <Eye className="me-2 h-4 w-4" />
-                            {t.admin.republish}
-                          </DropdownMenuItem>
+
+                        {/* Non-archived */}
+                        {p.status !== 'archived' && (
+                          <>
+                            {/* Unpublish active listings */}
+                            {p.status === 'active' && (
+                              <DropdownMenuItem onClick={() => openAction('unpublish', p)}>
+                                <EyeOff className="me-2 h-4 w-4" />
+                                {t.admin.unpublish}
+                              </DropdownMenuItem>
+                            )}
+                            {/* Publish hidden / inactive / pending listings */}
+                            {(p.status === 'hidden' ||
+                              p.status === 'inactive' ||
+                              p.status === 'pending') && (
+                              <DropdownMenuItem onClick={() => openAction('publish', p)}>
+                                <Eye className="me-2 h-4 w-4 text-green-600" />
+                                {t.admin.publish}
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            {/* Archive (available for all non-archived statuses) */}
+                            <DropdownMenuItem onClick={() => openAction('archive', p)}>
+                              <Archive className="me-2 h-4 w-4 text-slate-500" />
+                              {t.admin.archiveProperty}
+                            </DropdownMenuItem>
+                          </>
                         )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => openAction('delete', p)}
-                        >
-                          <Trash2 className="me-2 h-4 w-4" />
-                          {t.admin.deleteProperty}
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>

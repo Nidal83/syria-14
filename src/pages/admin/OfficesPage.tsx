@@ -4,13 +4,13 @@ import { format } from 'date-fns';
 import {
   CheckCircle2,
   XCircle,
-  Trash2,
   PauseCircle,
   PlayCircle,
   EyeOff,
   Eye,
   Search,
   MoreHorizontal,
+  ArchiveRestore,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,7 +48,6 @@ interface OfficeRow {
   status: string;
   is_active: boolean;
   created_at: string;
-  propertyCount?: number;
 }
 
 // ─── Query ────────────────────────────────────────────────────────────────────
@@ -75,6 +74,7 @@ const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   rejected: 'bg-red-100 text-red-800',
   suspended: 'bg-orange-100 text-orange-800',
+  hidden: 'bg-slate-100 text-slate-500',
 };
 
 function StatusBadge({
@@ -95,7 +95,9 @@ function StatusBadge({
         ? t.admin.rejected
         : status === 'suspended'
           ? t.admin.suspended
-          : t.admin.pending;
+          : status === 'hidden'
+            ? t.admin.hidden
+            : t.admin.pending;
 
   const color =
     status === 'approved' && !isActive
@@ -251,8 +253,15 @@ export default function AdminOfficesPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Dialog state
-  type Action = 'approve' | 'delete' | 'suspend' | 'unsuspend' | 'unavailable' | 'available';
+  // Dialog state — no delete action anywhere in this page
+  type Action =
+    | 'approve'
+    | 'suspend'
+    | 'unsuspend'
+    | 'unavailable'
+    | 'available'
+    | 'hide'
+    | 'restore';
   const [activeAction, setActiveAction] = useState<Action | null>(null);
   const [targetOffice, setTargetOffice] = useState<OfficeRow | null>(null);
   const [rejectingOffice, setRejectingOffice] = useState<OfficeRow | null>(null);
@@ -268,18 +277,14 @@ export default function AdminOfficesPage() {
 
   const mutation = useMutation({
     mutationFn: async ({ action, office }: { action: Action; office: OfficeRow }) => {
-      if (action === 'delete') {
-        const { error } = await supabase.from('offices').delete().eq('id', office.id);
-        if (error) throw error;
-      } else if (action === 'approve') {
+      if (action === 'approve') {
         const { error } = await supabase
           .from('offices')
           .update({ status: 'approved', is_active: true })
           .eq('id', office.id);
         if (error) throw error;
       } else if (action === 'suspend') {
-        // 'suspended' is added to office_status enum by migration 20260618000000_admin_management.sql.
-        // Regenerate TS types after applying that migration to remove this cast.
+        // 'suspended' added by migration 20260618000000. Cast away until types are regenerated.
         const suspendUpdate = { status: 'suspended' } as unknown as {
           status: 'pending' | 'approved' | 'rejected';
         };
@@ -303,16 +308,31 @@ export default function AdminOfficesPage() {
           .update({ is_active: true })
           .eq('id', office.id);
         if (error) throw error;
+      } else if (action === 'hide') {
+        // admin_hide_office: SECURITY DEFINER RPC added by migration 20260618100000.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)('admin_hide_office', {
+          p_office_id: office.id,
+        });
+        if (error) throw error;
+      } else if (action === 'restore') {
+        // admin_restore_office: SECURITY DEFINER RPC added by migration 20260618100000.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)('admin_restore_office', {
+          p_office_id: office.id,
+        });
+        if (error) throw error;
       }
     },
     onSuccess: (_, { action }) => {
       const successMap: Record<Action, string> = {
-        delete: t.admin.deleteOfficeSuccess,
         approve: t.admin.approveOfficeSuccess,
         suspend: t.admin.suspendSuccess,
         unsuspend: t.admin.unsuspendSuccess,
         unavailable: t.admin.toggleAvailabilitySuccess,
         available: t.admin.toggleAvailabilitySuccess,
+        hide: t.admin.hideOfficeSuccess,
+        restore: t.admin.restoreOfficeSuccess,
       };
       toast.success(successMap[action]);
       qc.invalidateQueries({ queryKey: ['admin-offices'] });
@@ -336,7 +356,12 @@ export default function AdminOfficesPage() {
     return true;
   });
 
-  const dialogProps = () => {
+  const dialogProps = (): {
+    title: string;
+    description: string;
+    label: string;
+    destructive?: boolean;
+  } | null => {
     if (!activeAction || !targetOffice) return null;
     const map: Record<
       Action,
@@ -346,12 +371,6 @@ export default function AdminOfficesPage() {
         title: t.admin.approveOffice,
         description: t.admin.confirmApproveOffice,
         label: t.admin.approve,
-      },
-      delete: {
-        title: t.admin.deleteOffice,
-        description: t.admin.confirmDeleteOffice,
-        label: t.admin.deleteOffice,
-        destructive: true,
       },
       suspend: {
         title: t.admin.suspendOffice,
@@ -374,11 +393,31 @@ export default function AdminOfficesPage() {
         description: t.admin.makeAvailable,
         label: t.admin.makeAvailable,
       },
+      hide: {
+        title: t.admin.hideOffice,
+        description: t.admin.confirmHideOffice,
+        label: t.admin.hideOffice,
+      },
+      restore: {
+        title: t.admin.restoreOffice,
+        description: t.admin.confirmRestoreOffice,
+        label: t.admin.restoreOffice,
+      },
     };
     return map[activeAction];
   };
 
   const dp = dialogProps();
+
+  const filterTabs = ['all', 'pending', 'approved', 'rejected', 'suspended', 'hidden'] as const;
+  const filterLabel = (s: (typeof filterTabs)[number]) => {
+    if (s === 'all') return t.admin.allStatuses;
+    if (s === 'approved') return t.admin.approved;
+    if (s === 'rejected') return t.admin.rejected;
+    if (s === 'suspended') return t.admin.suspended;
+    if (s === 'hidden') return t.admin.hidden;
+    return t.admin.pending;
+  };
 
   return (
     <div className="space-y-4">
@@ -401,7 +440,7 @@ export default function AdminOfficesPage() {
           />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {(['all', 'pending', 'approved', 'rejected', 'suspended'] as const).map((s) => (
+          {filterTabs.map((s) => (
             <Button
               key={s}
               size="sm"
@@ -409,15 +448,7 @@ export default function AdminOfficesPage() {
               onClick={() => setStatusFilter(s)}
               className="text-xs"
             >
-              {s === 'all'
-                ? t.admin.allStatuses
-                : s === 'approved'
-                  ? t.admin.approved
-                  : s === 'rejected'
-                    ? t.admin.rejected
-                    : s === 'suspended'
-                      ? t.admin.suspended
-                      : t.admin.pending}
+              {filterLabel(s)}
             </Button>
           ))}
         </div>
@@ -472,57 +503,68 @@ export default function AdminOfficesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="min-w-44">
-                        {/* Approve (pending/rejected only) */}
-                        {(o.status === 'pending' || o.status === 'rejected') && (
-                          <DropdownMenuItem onClick={() => openAction('approve', o)}>
-                            <CheckCircle2 className="me-2 h-4 w-4 text-green-600" />
-                            {t.admin.approveOffice}
+                        {/* Hidden offices: only Restore */}
+                        {o.status === 'hidden' && (
+                          <DropdownMenuItem onClick={() => openAction('restore', o)}>
+                            <ArchiveRestore className="me-2 h-4 w-4 text-green-600" />
+                            {t.admin.restoreOffice}
                           </DropdownMenuItem>
                         )}
-                        {/* Reject (pending only) */}
-                        {o.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => setRejectingOffice(o)}>
-                            <XCircle className="me-2 h-4 w-4 text-destructive" />
-                            {t.admin.rejectOffice}
-                          </DropdownMenuItem>
-                        )}
-                        {/* Suspend / Unsuspend */}
-                        {o.status === 'approved' && (
-                          <DropdownMenuItem onClick={() => openAction('suspend', o)}>
-                            <PauseCircle className="me-2 h-4 w-4 text-orange-500" />
-                            {t.admin.suspendOffice}
-                          </DropdownMenuItem>
-                        )}
-                        {o.status === 'suspended' && (
-                          <DropdownMenuItem onClick={() => openAction('unsuspend', o)}>
-                            <PlayCircle className="me-2 h-4 w-4 text-green-600" />
-                            {t.admin.unsuspendOffice}
-                          </DropdownMenuItem>
-                        )}
-                        {/* Available / Unavailable toggle */}
-                        {o.status === 'approved' && (
+
+                        {/* Non-hidden offices */}
+                        {o.status !== 'hidden' && (
                           <>
-                            {o.is_active ? (
-                              <DropdownMenuItem onClick={() => openAction('unavailable', o)}>
-                                <EyeOff className="me-2 h-4 w-4" />
-                                {t.admin.makeUnavailable}
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem onClick={() => openAction('available', o)}>
-                                <Eye className="me-2 h-4 w-4" />
-                                {t.admin.makeAvailable}
+                            {/* Approve (pending / rejected) */}
+                            {(o.status === 'pending' || o.status === 'rejected') && (
+                              <DropdownMenuItem onClick={() => openAction('approve', o)}>
+                                <CheckCircle2 className="me-2 h-4 w-4 text-green-600" />
+                                {t.admin.approveOffice}
                               </DropdownMenuItem>
                             )}
+                            {/* Reject (pending only) */}
+                            {o.status === 'pending' && (
+                              <DropdownMenuItem onClick={() => setRejectingOffice(o)}>
+                                <XCircle className="me-2 h-4 w-4 text-destructive" />
+                                {t.admin.rejectOffice}
+                              </DropdownMenuItem>
+                            )}
+                            {/* Suspend / Unsuspend */}
+                            {o.status === 'approved' && (
+                              <DropdownMenuItem onClick={() => openAction('suspend', o)}>
+                                <PauseCircle className="me-2 h-4 w-4 text-orange-500" />
+                                {t.admin.suspendOffice}
+                              </DropdownMenuItem>
+                            )}
+                            {o.status === 'suspended' && (
+                              <DropdownMenuItem onClick={() => openAction('unsuspend', o)}>
+                                <PlayCircle className="me-2 h-4 w-4 text-green-600" />
+                                {t.admin.unsuspendOffice}
+                              </DropdownMenuItem>
+                            )}
+                            {/* Available / Unavailable (approved only) */}
+                            {o.status === 'approved' && (
+                              <>
+                                {o.is_active ? (
+                                  <DropdownMenuItem onClick={() => openAction('unavailable', o)}>
+                                    <EyeOff className="me-2 h-4 w-4" />
+                                    {t.admin.makeUnavailable}
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem onClick={() => openAction('available', o)}>
+                                    <Eye className="me-2 h-4 w-4" />
+                                    {t.admin.makeAvailable}
+                                  </DropdownMenuItem>
+                                )}
+                              </>
+                            )}
+                            <DropdownMenuSeparator />
+                            {/* Hide (available for all non-hidden statuses) */}
+                            <DropdownMenuItem onClick={() => openAction('hide', o)}>
+                              <EyeOff className="me-2 h-4 w-4 text-slate-500" />
+                              {t.admin.hideOffice}
+                            </DropdownMenuItem>
                           </>
                         )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => openAction('delete', o)}
-                        >
-                          <Trash2 className="me-2 h-4 w-4" />
-                          {t.admin.deleteOffice}
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>

@@ -86,6 +86,7 @@ export const ar = {
     pending_office: 'مكتب قيد المراجعة',
     office: 'مكتب عقاري',
     admin: 'مدير النظام',
+    subadmin: 'مشرف',
   },
 
   property: {
@@ -116,6 +117,7 @@ export const ar = {
       sold: 'مباع',
       rented: 'مؤجر',
       inactive: 'غير نشط',
+      archived: 'مؤرشف',
     },
     categories: {
       residential: 'سكني',
@@ -521,6 +523,29 @@ export const ar = {
     ownerOffice: 'المكتب',
     actions: 'الإجراءات',
     suspended: 'معلق',
+    // Office soft-hide / restore
+    hideOffice: 'إخفاء المكتب',
+    confirmHideOffice: 'إخفاء هذا المكتب؟ سيُزال من الموقع العام. تُحفظ جميع البيانات والعقارات.',
+    hideOfficeSuccess: 'تم إخفاء المكتب',
+    restoreOffice: 'استعادة المكتب',
+    confirmRestoreOffice: 'استعادة هذا المكتب إلى حالته السابقة؟',
+    restoreOfficeSuccess: 'تم استعادة المكتب',
+    hidden: 'مخفي',
+    hiddenOffices: 'المكاتب المخفية',
+    activeOffices: 'المكاتب النشطة',
+    // Property archive / restore
+    archiveProperty: 'أرشفة العقار',
+    confirmArchiveProperty:
+      'أرشفة هذا العقار؟ سيُزال من جميع القوائم. تُحفظ الصور والمفضلات والاستفسارات.',
+    archiveSuccess: 'تم أرشفة العقار',
+    restoreProperty: 'استعادة العقار',
+    confirmRestoreProperty: 'استعادة هذا العقار إلى حالة "غير منشور"؟',
+    restorePropertySuccess: 'تم استعادة العقار',
+    archived: 'مؤرشف',
+    archivedProperties: 'العقارات المؤرشفة',
+    activeProperties: 'العقارات النشطة',
+    publish: 'نشر',
+    publishSuccess: 'تم نشر العقار',
   },
 
   pages: {
