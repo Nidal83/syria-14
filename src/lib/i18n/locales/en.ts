@@ -88,6 +88,7 @@ export const en: Translations = {
     pending_office: 'Office (Pending Review)',
     office: 'Real Estate Office',
     admin: 'Administrator',
+    subadmin: 'Moderator',
   },
 
   property: {
@@ -118,6 +119,7 @@ export const en: Translations = {
       sold: 'Sold',
       rented: 'Rented',
       inactive: 'Inactive',
+      archived: 'Archived',
     },
     categories: {
       residential: 'Residential',
@@ -477,6 +479,82 @@ export const en: Translations = {
     demoteSuccess: 'Role updated successfully',
     documents: 'Documents',
     noDocuments: 'No documents uploaded',
+    // User deactivation
+    deactivateUser: 'Deactivate User',
+    confirmDeactivateUser:
+      'Deactivate this user? They will be hidden from the user list and cannot log in.',
+    deactivateSuccess: 'User deactivated',
+    reactivateUser: 'Reactivate User',
+    reactivateSuccess: 'User reactivated',
+    // Role management
+    changeRole: 'Change Role',
+    selectNewRole: 'Select new role',
+    confirmChangeRole: 'Change role?',
+    changeRoleSuccess: 'Role updated successfully',
+    promoteToSubadmin: 'Make Moderator',
+    promoteToOffice: 'Make Office',
+    // Office management
+    deleteOffice: 'Delete Office',
+    confirmDeleteOffice: 'Delete this office and all its data? This cannot be undone.',
+    deleteOfficeSuccess: 'Office deleted successfully',
+    suspendOffice: 'Suspend Office',
+    confirmSuspendOffice: 'Suspend this office? They will not be able to publish listings.',
+    suspendSuccess: 'Office suspended',
+    unsuspendOffice: 'Reactivate Office',
+    unsuspendSuccess: 'Office reactivated',
+    makeUnavailable: 'Mark Unavailable',
+    makeAvailable: 'Mark Available',
+    toggleAvailabilitySuccess: 'Availability updated',
+    approveOffice: 'Approve Office',
+    rejectOffice: 'Reject Office',
+    confirmApproveOffice:
+      'Approve this office? The owner will be notified and can start publishing.',
+    confirmRejectOffice: 'Reject this office?',
+    approveOfficeSuccess: 'Office approved',
+    rejectOfficeSuccess: 'Office rejected',
+    officeOwner: 'Owner',
+    propertyCount: 'Listings',
+    // Property management
+    deleteProperty: 'Delete Property',
+    confirmDeleteProperty: 'Delete this property permanently? This cannot be undone.',
+    deletePropertySuccess: 'Property deleted successfully',
+    unpublish: 'Unpublish',
+    republish: 'Republish',
+    unpublishSuccess: 'Property unpublished',
+    republishSuccess: 'Property republished',
+    propertyRef: 'Ref ID',
+    ownerOffice: 'Office',
+    actions: 'Actions',
+    suspended: 'Suspended',
+    // Office soft-hide / restore
+    hideOffice: 'Hide Office',
+    confirmHideOffice:
+      'Hide this office? It will be removed from the public website. All data and properties are preserved.',
+    hideOfficeSuccess: 'Office hidden',
+    restoreOffice: 'Restore Office',
+    confirmRestoreOffice: 'Restore this office to its previous status?',
+    restoreOfficeSuccess: 'Office restored',
+    hidden: 'Hidden',
+    hiddenOffices: 'Hidden Offices',
+    activeOffices: 'Active Offices',
+    // Users tabs
+    activeUsers: 'Active Users',
+    deactivatedUsers: 'Deactivated Users',
+    deactivationDate: 'Deactivated On',
+    inquiries: 'Inquiries',
+    // Property archive / restore
+    archiveProperty: 'Archive Property',
+    confirmArchiveProperty:
+      'Archive this property? It will be removed from all listings. Images, favourites and inquiries are preserved.',
+    archiveSuccess: 'Property archived',
+    restoreProperty: 'Restore Property',
+    confirmRestoreProperty: 'Restore this property to unpublished status?',
+    restorePropertySuccess: 'Property restored',
+    archived: 'Archived',
+    archivedProperties: 'Archived Properties',
+    activeProperties: 'Active Properties',
+    publish: 'Publish',
+    publishSuccess: 'Property published',
   },
 
   pages: {
