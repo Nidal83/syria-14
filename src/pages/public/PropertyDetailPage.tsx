@@ -91,6 +91,8 @@ interface PropertyDetail {
   max_booking_days: number | null;
   default_checkin_time: string | null;
   default_checkout_time: string | null;
+  day_use_allowed: boolean | null;
+  min_booking_hours: number | null;
   features: string[];
   featured_image: string | null;
   status: string;
@@ -553,6 +555,8 @@ export default function PropertyDetailPage() {
                     max_booking_days: property.max_booking_days,
                     default_checkin_time: property.default_checkin_time,
                     default_checkout_time: property.default_checkout_time,
+                    day_use_allowed: property.day_use_allowed,
+                    min_booking_hours: property.min_booking_hours,
                   }}
                 />
               )}

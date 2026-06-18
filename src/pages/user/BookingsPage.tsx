@@ -91,7 +91,10 @@ function CustomerBookingCard({
           <Calendar className="h-3.5 w-3.5 shrink-0" />
           {fmt(booking.start_at)} – {fmt(booking.end_at)}
           <span className="text-foreground">
-            · {t.bookings.customer.nights.replace('{n}', String(nights))}
+            ·{' '}
+            {nights === 0
+              ? t.bookings.customer.dayUse
+              : t.bookings.customer.nights.replace('{n}', String(nights))}
           </span>
         </p>
 
