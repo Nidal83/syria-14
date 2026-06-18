@@ -1,8 +1,45 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { Trash2, EyeOff, Eye, Search, MoreHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n/context';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PropertyRow {
+  id: string;
+  title: string;
+  category: string;
+  listing_type: string;
+  price: number;
+  currency: string;
+  status: string;
+  reference_id: string | null;
+  created_at: string;
+  offices: { office_name: string } | null;
+}
+
+// ─── Query ────────────────────────────────────────────────────────────────────
 
 function useProperties() {
   return useQuery({
@@ -10,29 +47,213 @@ function useProperties() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('properties')
-        .select('id, title, category, listing_type, price, currency, status, created_at')
+        .select(
+          'id, title, category, listing_type, price, currency, status, reference_id, created_at, offices(office_name)',
+        )
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as PropertyRow[];
     },
     staleTime: 1000 * 30,
   });
 }
 
+// ─── Status helpers ───────────────────────────────────────────────────────────
+
 const statusColors: Record<string, string> = {
   active: 'bg-green-100 text-green-800',
   pending: 'bg-yellow-100 text-yellow-800',
   rejected: 'bg-red-100 text-red-800',
+  hidden: 'bg-gray-100 text-gray-700',
+  inactive: 'bg-gray-100 text-gray-500',
+  sold: 'bg-blue-100 text-blue-800',
+  rented: 'bg-blue-100 text-blue-700',
   draft: 'bg-gray-100 text-gray-700',
 };
 
+// ─── Confirm dialog (generic) ─────────────────────────────────────────────────
+
+function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel,
+  destructive,
+  isPending,
+  onConfirm,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  destructive?: boolean;
+  isPending: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+  children?: React.ReactNode;
+}) {
+  const { t } = useI18n();
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        {children}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
+            {t.common.cancel}
+          </Button>
+          <Button
+            variant={destructive ? 'destructive' : 'default'}
+            onClick={onConfirm}
+            disabled={isPending}
+          >
+            {isPending ? t.common.loading : confirmLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function AdminPropertiesPage() {
   const { t } = useI18n();
+  const qc = useQueryClient();
   const { data: properties = [], isLoading, isError } = useProperties();
+
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  type Action = 'delete' | 'unpublish' | 'republish';
+  const [activeAction, setActiveAction] = useState<Action | null>(null);
+  const [targetProperty, setTargetProperty] = useState<PropertyRow | null>(null);
+
+  function openAction(action: Action, property: PropertyRow) {
+    setActiveAction(action);
+    setTargetProperty(property);
+  }
+  function closeAction() {
+    setActiveAction(null);
+    setTargetProperty(null);
+  }
+
+  const mutation = useMutation({
+    mutationFn: async ({ action, property }: { action: Action; property: PropertyRow }) => {
+      if (action === 'delete') {
+        const { error } = await supabase.from('properties').delete().eq('id', property.id);
+        if (error) throw error;
+      } else if (action === 'unpublish') {
+        const { error } = await supabase
+          .from('properties')
+          .update({ status: 'hidden' })
+          .eq('id', property.id);
+        if (error) throw error;
+      } else if (action === 'republish') {
+        const { error } = await supabase
+          .from('properties')
+          .update({ status: 'active' })
+          .eq('id', property.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, { action }) => {
+      const successMap: Record<Action, string> = {
+        delete: t.admin.deletePropertySuccess,
+        unpublish: t.admin.unpublishSuccess,
+        republish: t.admin.republishSuccess,
+      };
+      toast.success(successMap[action]);
+      qc.invalidateQueries({ queryKey: ['admin-properties'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
+      closeAction();
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const filtered = properties.filter((p) => {
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      if (
+        !p.title.toLowerCase().includes(q) &&
+        !(p.reference_id ?? '').toLowerCase().includes(q) &&
+        !(p.offices?.office_name ?? '').toLowerCase().includes(q)
+      )
+        return false;
+    }
+    return true;
+  });
+
+  const dialogProps = () => {
+    if (!activeAction || !targetProperty) return null;
+    const map: Record<
+      Action,
+      { title: string; description: string; label: string; destructive?: boolean }
+    > = {
+      delete: {
+        title: t.admin.deleteProperty,
+        description: t.admin.confirmDeleteProperty,
+        label: t.admin.deleteProperty,
+        destructive: true,
+      },
+      unpublish: {
+        title: t.admin.unpublish,
+        description: t.admin.unpublish,
+        label: t.admin.unpublish,
+      },
+      republish: {
+        title: t.admin.republish,
+        description: t.admin.republish,
+        label: t.admin.republish,
+      },
+    };
+    return map[activeAction];
+  };
+
+  const dp = dialogProps();
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">{t.admin.properties}</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold">{t.admin.properties}</h1>
+        <span className="text-sm text-muted-foreground">
+          {filtered.length} / {properties.length}
+        </span>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="ps-9"
+            placeholder={t.common.search}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {(['all', 'active', 'hidden', 'pending', 'inactive'] as const).map((s) => (
+            <Button
+              key={s}
+              size="sm"
+              variant={statusFilter === s ? 'default' : 'outline'}
+              onClick={() => setStatusFilter(s)}
+              className="text-xs"
+            >
+              {s === 'all'
+                ? t.admin.allStatuses
+                : (t.property.statuses[s as keyof typeof t.property.statuses] ?? s)}
+            </Button>
+          ))}
+        </div>
+      </div>
 
       {isLoading && <p className="text-muted-foreground">{t.common.loading}</p>}
       {isError && <p className="text-destructive">{t.common.error}</p>}
@@ -42,31 +263,36 @@ export default function AdminPropertiesPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="px-4 py-3 text-start">{t.admin.propertyRef}</th>
                 <th className="px-4 py-3 text-start">{t.property.title}</th>
+                <th className="px-4 py-3 text-start">{t.admin.ownerOffice}</th>
                 <th className="px-4 py-3 text-start">{t.property.category}</th>
-                <th className="px-4 py-3 text-start">{t.property.listingType}</th>
                 <th className="px-4 py-3 text-start">{t.property.price}</th>
                 <th className="px-4 py-3 text-start">{t.property.status}</th>
                 <th className="px-4 py-3 text-start">{t.admin.submittedAt}</th>
+                <th className="px-4 py-3 text-start">{t.admin.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
-              {properties.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     {t.common.noResults}
                   </td>
                 </tr>
               )}
-              {properties.map((p) => (
+              {filtered.map((p) => (
                 <tr key={p.id} className="bg-background hover:bg-muted/20">
-                  <td className="max-w-[200px] truncate px-4 py-3 font-medium">{p.title}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground" dir="ltr">
+                    {p.reference_id ?? '—'}
+                  </td>
+                  <td className="max-w-[180px] truncate px-4 py-3 font-medium">{p.title}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {p.offices?.office_name ?? '—'}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {t.property.categories[p.category as keyof typeof t.property.categories] ??
                       p.category}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {p.listing_type === 'sale' ? t.property.sale : t.property.rent}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground" dir="ltr">
                     {p.price.toLocaleString()} {p.currency}
@@ -80,11 +306,66 @@ export default function AdminPropertiesPage() {
                   <td className="px-4 py-3 text-muted-foreground">
                     {format(new Date(p.created_at), 'dd/MM/yyyy')}
                   </td>
+                  <td className="px-4 py-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">{t.admin.actions}</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-40">
+                        {/* Unpublish (active properties) */}
+                        {p.status === 'active' && (
+                          <DropdownMenuItem onClick={() => openAction('unpublish', p)}>
+                            <EyeOff className="me-2 h-4 w-4" />
+                            {t.admin.unpublish}
+                          </DropdownMenuItem>
+                        )}
+                        {/* Republish (hidden/inactive) */}
+                        {(p.status === 'hidden' || p.status === 'inactive') && (
+                          <DropdownMenuItem onClick={() => openAction('republish', p)}>
+                            <Eye className="me-2 h-4 w-4" />
+                            {t.admin.republish}
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => openAction('delete', p)}
+                        >
+                          <Trash2 className="me-2 h-4 w-4" />
+                          {t.admin.deleteProperty}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Confirm dialog */}
+      {dp && targetProperty && (
+        <ConfirmDialog
+          open={Boolean(activeAction && targetProperty)}
+          title={dp.title}
+          description={dp.description}
+          confirmLabel={dp.label}
+          destructive={dp.destructive}
+          isPending={mutation.isPending}
+          onConfirm={() => mutation.mutate({ action: activeAction!, property: targetProperty })}
+          onClose={closeAction}
+        >
+          <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
+            <p className="font-semibold">{targetProperty.title}</p>
+            <p className="font-mono text-xs text-muted-foreground" dir="ltr">
+              {targetProperty.reference_id}
+            </p>
+          </div>
+        </ConfirmDialog>
       )}
     </div>
   );

@@ -15,6 +15,7 @@ import {
 import { Logo } from '@/components/common/Logo';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/providers/AuthProvider';
 import { useI18n } from '@/lib/i18n/context';
 import { PATHS } from '@/routes/paths';
@@ -158,23 +159,33 @@ export function DashboardLayout({ role }: Props) {
           </h1>
           <Logo className="lg:hidden" />
 
-          <div className="ms-auto flex items-center gap-3">
+          <div className="ms-auto flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
             <NotificationBell />
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-8 w-8 shrink-0">
                 <AvatarImage src={profile?.avatar_url ?? undefined} />
                 <AvatarFallback className="bg-primary text-xs font-bold text-primary-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden text-end sm:block">
-                <p className="text-xs font-medium leading-none">
+              <div className="hidden min-w-0 flex-col items-start gap-0.5 sm:flex">
+                <p className="max-w-[140px] truncate text-xs font-semibold leading-none text-foreground">
                   {profile?.name || profile?.email}
                 </p>
-                <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  {profile?.role ? t.roles[profile.role] : ''}
-                </p>
+                {profile?.role && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'h-4 px-1.5 text-[10px] font-medium',
+                      role === 'admin'
+                        ? 'border-purple-300 bg-purple-50 text-purple-700 dark:border-purple-700 dark:bg-purple-950 dark:text-purple-300'
+                        : 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300',
+                    )}
+                  >
+                    {t.roles[profile.role]}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
